@@ -1,9 +1,10 @@
 import './App.css'
+import LoginPage from "./pages/LoginPage.jsx";
 
 function App() {
   return (
     <>
-      <h1>TaskFlow Manager WEB</h1>
+        <LoginPage />
     </>
   )
 }
