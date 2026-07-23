@@ -1,23 +1,33 @@
 import {useState} from "react";
-import {login} from "../api/auth.js";
+import {useAuth} from "../hooks/useAuth.js";
+import {Navigate, useNavigate} from "react-router-dom";
 
 function LoginPage() {
+    const {login, isAuthenticated, loading} = useAuth();
+    const navigate = useNavigate();
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [success, setSuccess] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+
+    if (loading) {
+        return <p>Chargement...</p>;
+    }
+
+    if (isAuthenticated) {
+        return <Navigate to="/projects" />;
+    }
 
     async function handleSubmit(e) {
         e.preventDefault();
 
         setError('');
-        setSuccess(false);
-        setLoading(true);
+        setSubmitting(true);
 
         try {
             await login(email, password);
-            setSuccess(true);
+            navigate('/projects');
         } catch (err) {
             if (err.message.includes('401')) {
                 setError('Email ou mot de passe incorrect');
@@ -25,7 +35,7 @@ function LoginPage() {
                 setError('Impossible de se connecter. Réessayez plus tard.');
             }
         } finally {
-            setLoading(false);
+            setSubmitting(false);
         }
     }
 
@@ -60,14 +70,13 @@ function LoginPage() {
 
                 <button
                     type="submit"
-                    disabled={loading}
+                    disabled={submitting}
                 >
-                    {loading ? 'Connexion...' : 'Se connecter'}
+                    {submitting ? 'Connexion...' : 'Se connecter'}
                 </button>
             </form>
 
             {error && <p style={{color: 'red'}}>{error}</p>}
-            {success && <p style={{ color: 'green' }}>Connexion réussie.</p>}
         </div>
     )
 }
