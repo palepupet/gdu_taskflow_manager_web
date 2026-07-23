@@ -2,8 +2,12 @@ import { useEffect, useState } from 'react'
 import { login as loginRequest } from '../api/auth.js'
 import { getMe } from '../api/profile.js'
 import { AuthContext } from './auth-context.js'
+import {setOnUnauthorized} from "../api/client.js";
+import {useNavigate} from "react-router-dom";
 
 export function AuthProvider({ children }) {
+    const navigate = useNavigate();
+
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
 
@@ -29,6 +33,15 @@ export function AuthProvider({ children }) {
         loadUser()
     }, [])
 
+    useEffect(() => {
+        setOnUnauthorized( () => {
+            setUser(null);
+            navigate('/login', {
+                state: { message: 'Session expirée.'},
+            })
+        })
+    }, [navigate])
+
     async function login(email, password) {
         await loginRequest(email, password)
         const profile = await getMe()
@@ -37,6 +50,7 @@ export function AuthProvider({ children }) {
 
     function logout() {
         sessionStorage.removeItem('token')
+        navigate('/login')
         setUser(null)
     }
 

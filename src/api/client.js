@@ -1,5 +1,11 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
 
+let onUnauthorized = null;
+
+export function setOnUnauthorized(callback) {
+    onUnauthorized = callback;
+}
+
 export async function apiClient(endpoint, options = {}) {
     const method = options.method || 'GET'
     const headers = {
@@ -19,6 +25,15 @@ export async function apiClient(endpoint, options = {}) {
     }
 
     const response = await fetch(`${BASE_URL}${endpoint}`, config)
+
+    if (response.status === 401 && endpoint !== '/auth/login') {
+        sessionStorage.removeItem('token');
+        if (onUnauthorized) {
+            onUnauthorized();
+        }
+
+        throw new Error('Erreur HTTP 401');
+    }
 
     if (!response.ok) {
         throw new Error(`Erreur HTTP ${response.status}`)
