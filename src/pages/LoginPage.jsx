@@ -1,15 +1,18 @@
 import {useState} from "react";
 import {useAuth} from "../hooks/useAuth.js";
-import {Navigate, useNavigate} from "react-router-dom";
+import {Navigate, useLocation, useNavigate} from "react-router-dom";
 
 function LoginPage() {
     const {login, isAuthenticated, loading} = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
+
+    const infoMessage = location.state?.message;
 
     if (loading) {
         return <p>Chargement...</p>;
@@ -76,6 +79,7 @@ function LoginPage() {
                 </button>
             </form>
 
+            {infoMessage && <p style={{color: 'orange'}}>{infoMessage}</p>}
             {error && <p style={{color: 'red'}}>{error}</p>}
         </div>
     )
