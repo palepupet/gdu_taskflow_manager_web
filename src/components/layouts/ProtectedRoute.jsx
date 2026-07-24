@@ -1,12 +1,12 @@
 import { useAuth } from "../../hooks/useAuth.js"
 import { Navigate, Outlet } from "react-router-dom"
-import { Typography } from "@mui/material"
+import Loading from "../Loading.jsx"
 
 function ProtectedRoute() {
     const {isAuthenticated, loading} = useAuth();
 
     if (loading) {
-        return <Typography sx={{ p: 3 }}>Chargement...</Typography>
+        return <Loading />
     }
 
     if (!isAuthenticated) {

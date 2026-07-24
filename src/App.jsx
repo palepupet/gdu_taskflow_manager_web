@@ -4,6 +4,7 @@ import DashboardLayout from './components/layouts/DashboardLayout.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import ProjectsPage from './pages/ProjectsPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
+import ProjectDetailPage from "./pages/ProjectDetailPage.jsx"
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
                 <Route path="/projects" element={<ProjectsPage />} />
+                <Route path="/projects/:id" element={<ProjectDetailPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
             </Route>
         </Route>
