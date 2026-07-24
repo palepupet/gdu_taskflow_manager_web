@@ -1,6 +1,15 @@
-import {useState} from "react";
-import {useAuth} from "../hooks/useAuth.js";
-import {Navigate, useLocation, useNavigate} from "react-router-dom";
+import { useState } from "react"
+import { Navigate, useLocation, useNavigate } from "react-router-dom"
+import {
+    Alert,
+    Box,
+    Button,
+    Container,
+    Paper,
+    TextField,
+    Typography,
+} from '@mui/material'
+import { useAuth } from '../hooks/useAuth.js'
 
 function LoginPage() {
     const {login, isAuthenticated, loading} = useAuth();
@@ -15,7 +24,7 @@ function LoginPage() {
     const infoMessage = location.state?.message;
 
     if (loading) {
-        return <p>Chargement...</p>;
+        return <Typography sx={{ p: 3 }}>Chargement...</Typography>;
     }
 
     if (isAuthenticated) {
@@ -43,46 +52,76 @@ function LoginPage() {
     }
 
     return (
-        <div>
-            <h1>Connexion</h1>
+        <Container maxWidth="sm">
+            <Box
+                sx={{
+                    minHeight: '100vh',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                <Paper sx={{ p: 4, width: '100%' }}>
+                    <Typography
+                        variant="h4"
+                        component="h1"
+                        gutterBottom
+                        sx={{ color: 'text.primary' }}
+                    >
+                        Connexion
+                    </Typography>
 
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label htmlFor="email">Email</label>
-                    <input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        autoComplete="email"
-                    />
-                </div>
+                    {infoMessage && (
+                        <Alert severity="warning" sx={{ mb: 2 }}>
+                            {infoMessage}
+                        </Alert>
+                    )}
 
-                <div>
-                    <label htmlFor="password">Mot de passe</label>
-                    <input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        autoComplete="current-password"
-                    />
-                </div>
+                    {error && (
+                        <Alert severity="error" sx={{ mb: 2 }}>
+                            {error}
+                        </Alert>
+                    )}
 
-                <button
-                    type="submit"
-                    disabled={submitting}
-                >
-                    {submitting ? 'Connexion...' : 'Se connecter'}
-                </button>
-            </form>
+                    <Box component="form" onSubmit={handleSubmit}>
+                        <TextField
+                            id="email"
+                            label="Email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            fullWidth
+                            margin="normal"
+                            autoComplete="email"
+                        />
 
-            {infoMessage && <p style={{color: 'orange'}}>{infoMessage}</p>}
-            {error && <p style={{color: 'red'}}>{error}</p>}
-        </div>
-    )
+                        <TextField
+                            id="password"
+                            label="Mot de passe"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            fullWidth
+                            margin="normal"
+                            autoComplete="current-password"
+                        />
+
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            fullWidth
+                            disabled={submitting}
+                            sx={{ mt: 2 }}
+                        >
+                            {submitting ? 'Connexion...' : 'Se connecter'}
+                        </Button>
+                    </Box>
+                </Paper>
+            </Box>
+        </Container>
+    );
 }
 
 export default LoginPage;
