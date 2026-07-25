@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { Navigate, useLocation, useNavigate } from "react-router-dom"
 import {
-    Alert,
     Box,
     Button,
     Container,
@@ -10,6 +9,8 @@ import {
     Typography,
 } from '@mui/material'
 import { useAuth } from '../hooks/useAuth.js'
+import Loading from "../components/Loading.jsx"
+import NotifyAlert from "../components/NotifyAlert.jsx"
 
 function LoginPage() {
     const {login, isAuthenticated, loading} = useAuth();
@@ -24,7 +25,7 @@ function LoginPage() {
     const infoMessage = location.state?.message;
 
     if (loading) {
-        return <Typography sx={{ p: 3 }}>Chargement...</Typography>;
+        return <Loading />
     }
 
     if (isAuthenticated) {
@@ -71,17 +72,8 @@ function LoginPage() {
                         Connexion
                     </Typography>
 
-                    {infoMessage && (
-                        <Alert severity="warning" sx={{ mb: 2 }}>
-                            {infoMessage}
-                        </Alert>
-                    )}
-
-                    {error && (
-                        <Alert severity="error" sx={{ mb: 2 }}>
-                            {error}
-                        </Alert>
-                    )}
+                    <NotifyAlert message={error} />
+                    <NotifyAlert message={infoMessage} severity="warning" />
 
                     <Box component="form" onSubmit={handleSubmit}>
                         <TextField
