@@ -1,6 +1,7 @@
 import { Box, Card, CardActionArea, CardContent, Chip, Typography } from "@mui/material"
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
+import { getStatusColor } from "../utils/projects.js"
 import { getProjects } from "../api/projects.js"
 import Loading from "../components/Loading.jsx"
 import NotifyAlert from "../components/NotifyAlert.jsx"
@@ -9,20 +10,6 @@ function ProjectsPage() {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-
-    function getStatusColor(status) {
-        if (status === 'en cours') {
-            return 'success';
-        }
-        if (status === 'annulé') {
-            return 'error';
-        }
-        if (status === 'terminé') {
-            return 'info';
-        }
-
-        return 'default'
-    }
 
     async function loadProjects() {
         setLoading(true);
