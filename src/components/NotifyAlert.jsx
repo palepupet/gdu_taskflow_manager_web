@@ -1,4 +1,5 @@
 import { Alert } from "@mui/material"
+import PropTypes from "prop-types"
 
 function NotifyAlert({ message, severity = 'error' }) {
     if (!message) {
@@ -13,6 +14,11 @@ function NotifyAlert({ message, severity = 'error' }) {
             {message}
         </Alert>
     );
+}
+
+NotifyAlert.propTypes = {
+    message: PropTypes.string,
+    severity: PropTypes.oneOf(['success', 'error', 'warning', 'info']),
 }
 
 export default NotifyAlert;
