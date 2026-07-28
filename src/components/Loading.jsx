@@ -1,4 +1,5 @@
 import { Box, CircularProgress, Typography } from "@mui/material"
+import PropTypes from "prop-types"
 
 function Loading({ message = 'Chargement...' }) {
     return (
@@ -15,6 +16,10 @@ function Loading({ message = 'Chargement...' }) {
             <Typography>{message}</Typography>
         </Box>
     );
+}
+
+Loading.propTypes = {
+    message: PropTypes.string,
 }
 
 export default Loading;

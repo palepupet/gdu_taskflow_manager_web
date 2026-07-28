@@ -4,6 +4,7 @@ import { getMe } from '../api/profile.js'
 import { AuthContext } from './auth-context.js'
 import {setOnUnauthorized} from "../api/client.js";
 import {useNavigate} from "react-router-dom";
+import PropTypes from "prop-types"
 
 export function AuthProvider({ children }) {
     const navigate = useNavigate();
@@ -67,4 +68,8 @@ export function AuthProvider({ children }) {
             {children}
         </AuthContext.Provider>
     )
+}
+
+AuthProvider.propTypes = {
+    children: PropTypes.node.isRequired,
 }
