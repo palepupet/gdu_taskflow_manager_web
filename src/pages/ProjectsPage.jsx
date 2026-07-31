@@ -1,4 +1,4 @@
-import { Box, Card, CardActionArea, CardContent, Chip, Typography } from "@mui/material"
+import { Box, Button, Card, CardActionArea, CardContent, Chip, Typography } from "@mui/material"
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { getStatusColor } from "../utils/projects.js"
@@ -37,6 +37,16 @@ function ProjectsPage() {
     return (
         <>
             <NotifyAlert message={error} />
+
+            <Box sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                mb: 2,
+            }}>
+                <Button component={Link} to="/projects/create" variant="contained">
+                    Nouveau projet
+                </Button>
+            </Box>
 
             <Box
                 sx={{
