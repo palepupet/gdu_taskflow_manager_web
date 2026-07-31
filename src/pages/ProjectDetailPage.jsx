@@ -1,20 +1,21 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
+    Alert,
     Box,
     Button,
     Chip,
     Typography,
 } from '@mui/material'
-import { getProject } from '../api/projects.js'
-import { getStatusColor } from "../utils/projects.js";
+import {getProject, updateProject} from '../api/projects.js'
+import {getStatusColor, PROJECT_STATUS} from "../utils/projects.js";
 import Loading from '../components/Loading.jsx'
 import NotifyAlert from '../components/NotifyAlert.jsx'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import PersonIcon from '@mui/icons-material/Person'
 import { useAuth } from "../hooks/useAuth.js"
-import { canEditProject } from "../utils/permissions.js"
+import { canArchiveProject, canEditProject, canRestoreProject } from "../utils/permissions.js"
 
 function ProjectDetailPage() {
     const { id } = useParams()
@@ -23,6 +24,22 @@ function ProjectDetailPage() {
     const [project, setProject] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const [actionError, setActionError] = useState('')
+    const [actionLoading, setActionLoading] = useState(false)
+
+    async function changeStatus(status) {
+        setActionError('')
+        setActionLoading(true)
+
+        try {
+            const updated = await updateProject(id, { status })
+            setProject(updated)
+        } catch (err) {
+            setActionError(err.message || 'Impossible de changer le statut du projet.')
+        } finally {
+            setActionLoading(false)
+        }
+    }
 
     async function loadDetailProject() {
         setLoading(true)
@@ -52,30 +69,73 @@ function ProjectDetailPage() {
     return (
         <Box>
             <Box
-                direction="row"
                 sx={{
                     display: 'flex',
-                    justifyContent: 'flex-end',
-                    mb: 2
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: 1,
+                    mb: 2,
                 }}
             >
-                {project && canEditProject(user, project) && (
-                    <Button
-                        component={Link}
-                        to={`/projects/${project.id}/edit`}
-                        variant="contained"
-                        sx={{ mr: 2 }}
-                    >
-                        Modifier
-                    </Button>
-                )}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {project && canArchiveProject(user, project) && (
+                        <>
+                            <Button
+                                variant="outlined"
+                                color="info"
+                                disabled={actionLoading}
+                                onClick={() => changeStatus(PROJECT_STATUS.DONE)}
+                            >
+                                Terminer
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                color="error"
+                                disabled={actionLoading}
+                                onClick={() => changeStatus(PROJECT_STATUS.CANCELLED)}
+                            >
+                                Annuler
+                            </Button>
+                        </>
+                    )}
+                </Box>
 
-                <Button component={Link} to="/projects" variant="outlined">
-                    Retour aux projets
-                </Button>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {project && canEditProject(user, project) && (
+                        <Button
+                            component={Link}
+                            to={`/projects/${project.id}/edit`}
+                            variant="contained"
+                        >
+                            Modifier
+                        </Button>
+                    )}
+
+                    {project && canRestoreProject(user, project) && (
+                        <Button
+                            variant="contained"
+                            disabled={actionLoading}
+                            onClick={() => changeStatus(PROJECT_STATUS.IN_PROGRESS)}
+                        >
+                            Restaurer
+                        </Button>
+                    )}
+
+                    <Button component={Link} to="/projects" variant="outlined">
+                        Retour aux projets
+                    </Button>
+                </Box>
             </Box>
 
+            {project?.isArchived && (
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                    Ce projet est archivé. Vous pouvez le restaurer si vous en avez le droit.
+                </Alert>
+            )}
+
             <NotifyAlert message={error} />
+            <NotifyAlert message={actionError} />
 
             {!project && (
                 <Typography>Projet introuvable.</Typography>
