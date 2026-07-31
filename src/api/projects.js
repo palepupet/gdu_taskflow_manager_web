@@ -7,3 +7,10 @@ export async function getProjects() {
 export async function getProject(id) {
     return apiClient(`/project/${id}`);
 }
+
+export async function createProject(payload) {
+    return apiClient('/project', {
+        method: 'POST',
+        body: payload,
+    });
+}
