@@ -6,6 +6,7 @@ import ProjectsPage from './pages/ProjectsPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
 import ProjectDetailPage from "./pages/ProjectDetailPage.jsx"
 import ProjectCreatePage from "./pages/ProjectCreatePage.jsx"
+import ProjectEditPage from "./pages/ProjectEditPage.jsx"
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/projects/create" element={<ProjectCreatePage />} />
                 <Route path="/projects/:id" element={<ProjectDetailPage />} />
+                <Route path="/projects/:id/edit" element={<ProjectEditPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
             </Route>
         </Route>

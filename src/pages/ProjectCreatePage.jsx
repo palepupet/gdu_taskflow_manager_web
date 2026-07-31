@@ -1,8 +1,9 @@
-import { Link, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { useState } from "react"
 import { createProject } from "../api/projects.js"
-import { Box, Button, TextField, Typography } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import NotifyAlert from "../components/NotifyAlert.jsx"
+import ProjectForm from "../components/ProjectForm.jsx"
 
 function ProjectCreatePage() {
     const navigate = useNavigate();
@@ -52,52 +53,21 @@ function ProjectCreatePage() {
 
             <NotifyAlert message={error} />
 
-            <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 560 }}>
-                <TextField
-                    label="Titre"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    required
-                    fullWidth
-                    margin="normal"
+            <ProjectForm
+                title={title}
+                description={description}
+                startAt={startAt}
+                endAt={endAt}
+                onTitleChange={(e) => setTitle(e.target.value)}
+                onDescriptionChange={(e) => setDescription(e.target.value)}
+                onStartAtChange={(e) => setStartAt(e.target.value)}
+                onEndAtChange={(e) => setEndAt(e.target.value)}
+                onSubmit={handleSubmit}
+                submitting={submitting}
+                submitLabel="Créer"
+                submittingLabel="Création..."
+                backTo="/projects"
                 />
-                <TextField
-                    label="Description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    fullWidth
-                    margin="normal"
-                    multiline
-                    rows={3}
-                />
-                <TextField
-                    label="Date de début"
-                    type="date"
-                    value={startAt}
-                    onChange={(e) => setStartAt(e.target.value)}
-                    fullWidth
-                    margin="normal"
-                    slotProps={{inputLabel: {shrink: true}}}
-                />
-                <TextField
-                    label="Date de fin"
-                    type="date"
-                    value={endAt}
-                    onChange={(e) => setEndAt(e.target.value)}
-                    fullWidth
-                    margin="normal"
-                    slotProps={{inputLabel: {shrink: true}}}
-                />
-
-                <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-                    <Button type="submit" variant="contained" disabled={submitting}>
-                        {submitting ? 'Création...' : 'Créer'}
-                    </Button>
-                    <Button component={Link} to="/projects" variant="outlined">
-                        Annuler
-                    </Button>
-                </Box>
-            </Box>
         </Box>
     );
 }

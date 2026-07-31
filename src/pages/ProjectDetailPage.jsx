@@ -13,9 +13,12 @@ import NotifyAlert from '../components/NotifyAlert.jsx'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import PersonIcon from '@mui/icons-material/Person'
+import { useAuth } from "../hooks/useAuth.js"
+import { canEditProject } from "../utils/permissions.js"
 
 function ProjectDetailPage() {
     const { id } = useParams()
+    const { user } = useAuth()
 
     const [project, setProject] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -56,6 +59,17 @@ function ProjectDetailPage() {
                     mb: 2
                 }}
             >
+                {project && canEditProject(user, project) && (
+                    <Button
+                        component={Link}
+                        to={`/projects/${project.id}/edit`}
+                        variant="contained"
+                        sx={{ mr: 2 }}
+                    >
+                        Modifier
+                    </Button>
+                )}
+
                 <Button component={Link} to="/projects" variant="outlined">
                     Retour aux projets
                 </Button>
