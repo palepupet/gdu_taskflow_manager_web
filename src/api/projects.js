@@ -14,3 +14,10 @@ export async function createProject(payload) {
         body: payload,
     });
 }
+
+export function updateProject(id, payload) {
+    return apiClient(`/project/${id}`, {
+        method: 'PATCH',
+        body: payload,
+    });
+}
