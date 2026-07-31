@@ -19,3 +19,19 @@ export function canEditProject(user, project) {
 
     return isManager(user) || isOwner(user, project);
 }
+
+export function canManageProject(user, project) {
+    if (!user || !project) {
+        return false;
+    }
+
+    return isManager(user) || isOwner(user, project);
+}
+
+export function canArchiveProject(user, project) {
+    return canManageProject(user, project) && !project.isArchived;
+}
+
+export function canRestoreProject(user, project) {
+    return canManageProject(user, project) && project.isArchived;
+}

@@ -1,11 +1,17 @@
+export const PROJECT_STATUS = {
+    IN_PROGRESS: 'en cours',
+    DONE: 'terminé',
+    CANCELLED: 'annulé',
+}
+
 export function getStatusColor(status) {
-    if (status === 'en cours') {
+    if (status === PROJECT_STATUS.IN_PROGRESS) {
         return 'success';
     }
-    if (status === 'annulé') {
+    if (status === PROJECT_STATUS.CANCELLED) {
         return 'error';
     }
-    if (status === 'terminé') {
+    if (status === PROJECT_STATUS.DONE) {
         return 'info';
     }
 
