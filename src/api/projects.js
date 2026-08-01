@@ -21,3 +21,16 @@ export function updateProject(id, payload) {
         body: payload,
     });
 }
+export async function addProjectMembers(id, memberIds) {
+    return apiClient(`/project/${id}/members`, {
+        method: 'POST',
+        body: { members: memberIds },
+    });
+}
+
+export async function removeProjectMembers(id, memberIds) {
+    return apiClient(`/project/${id}/members`, {
+        method: 'DELETE',
+        body: { members: memberIds}
+    });
+}
