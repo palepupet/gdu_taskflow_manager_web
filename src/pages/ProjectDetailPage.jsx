@@ -1,21 +1,22 @@
-import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useEffect, useState } from "react"
+import { useParams } from "react-router-dom"
+import { Alert, Box, Chip, Typography } from "@mui/material"
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth"
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts"
 import {
-    Alert,
-    Box,
-    Button,
-    Chip,
-    Typography,
-} from '@mui/material'
-import {getProject, updateProject} from '../api/projects.js'
-import {getStatusColor, PROJECT_STATUS} from "../utils/projects.js";
-import Loading from '../components/Loading.jsx'
-import NotifyAlert from '../components/NotifyAlert.jsx'
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
-import PersonIcon from '@mui/icons-material/Person'
+    addProjectMembers,
+    getProject,
+    removeProjectMembers,
+    updateProject,
+} from "../api/projects.js"
+import { getUsers } from "../api/users.js"
+import { getStatusColor } from "../utils/projects.js"
 import { useAuth } from "../hooks/useAuth.js"
-import { canArchiveProject, canEditProject, canRestoreProject } from "../utils/permissions.js"
+import Loading from "../components/Loading.jsx"
+import NotifyAlert from "../components/NotifyAlert.jsx"
+import ProjectDetailActions from "../components/project/ProjectDetailActions.jsx"
+import ProjectMembersSection from "../components/project/ProjectMembersSection.jsx"
+import AddMembersDialog from "../components/project/AddMembersDialog.jsx"
 
 function ProjectDetailPage() {
     const { id } = useParams()
@@ -27,6 +28,11 @@ function ProjectDetailPage() {
     const [actionError, setActionError] = useState('')
     const [actionLoading, setActionLoading] = useState(false)
 
+    const [openAddMemberModal, setOpenAddMemberModal] = useState(false)
+    const [users, setUsers] = useState([])
+    const [selectedUsers, setSelectedUsers] = useState([])
+    const [membersLoading, setMembersLoading] = useState(false)
+
     async function changeStatus(status) {
         setActionError('')
         setActionLoading(true)
@@ -36,6 +42,68 @@ function ProjectDetailPage() {
             setProject(updated)
         } catch (err) {
             setActionError(err.message || 'Impossible de changer le statut du projet.')
+        } finally {
+            setActionLoading(false)
+        }
+    }
+
+    async function openAddMemberDialog() {
+        setActionError('')
+        setSelectedUsers([])
+        setOpenAddMemberModal(true)
+        setMembersLoading(true)
+
+        try {
+            const data = await getUsers()
+            setUsers(data)
+        } catch (err) {
+            setActionError(err.message || 'Impossible de charger les utilisateurs.')
+            setOpenAddMemberModal(false)
+        } finally {
+            setMembersLoading(false)
+        }
+    }
+
+    async function refreshProject() {
+        try {
+            const data = await getProject(id)
+            setProject(data)
+        } catch (err) {
+            setError(err.message || 'Erreur lors du rechargement du projet.')
+        }
+    }
+
+    async function handleAddMembers() {
+        if (selectedUsers.length === 0) {
+            setActionError('Sélectionnez au moins un membre.')
+            return
+        }
+
+        setActionLoading(true)
+        setActionError('')
+
+        try {
+            const memberIds = selectedUsers.map((selected) => selected.id)
+            await addProjectMembers(id, memberIds)
+            setOpenAddMemberModal(false)
+            setSelectedUsers([])
+            await refreshProject()
+        } catch (err) {
+            setActionError(err.message || "Impossible d'ajouter le(s) membre(s) au projet.")
+        } finally {
+            setActionLoading(false)
+        }
+    }
+
+    async function handleRemoveMember(memberId) {
+        setActionError('')
+        setActionLoading(true)
+
+        try {
+            await removeProjectMembers(id, [memberId])
+            await refreshProject()
+        } catch (err) {
+            setActionError(err.message || 'Impossible de supprimer le membre du projet.')
         } finally {
             setActionLoading(false)
         }
@@ -66,67 +134,20 @@ function ProjectDetailPage() {
         return <Loading />
     }
 
+    const memberIds = (project?.members || []).map((member) => member.id)
+    const ownerId = project?.owner?.id
+    const availableUsers = users.filter(
+        (userAvailable) => !memberIds.includes(userAvailable.id) && userAvailable.id !== ownerId
+    )
+
     return (
         <Box>
-            <Box
-                sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: 1,
-                    mb: 2,
-                }}
-            >
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {project && canArchiveProject(user, project) && (
-                        <>
-                            <Button
-                                variant="outlined"
-                                color="info"
-                                disabled={actionLoading}
-                                onClick={() => changeStatus(PROJECT_STATUS.DONE)}
-                            >
-                                Terminer
-                            </Button>
-                            <Button
-                                variant="outlined"
-                                color="error"
-                                disabled={actionLoading}
-                                onClick={() => changeStatus(PROJECT_STATUS.CANCELLED)}
-                            >
-                                Annuler
-                            </Button>
-                        </>
-                    )}
-                </Box>
-
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {project && canEditProject(user, project) && (
-                        <Button
-                            component={Link}
-                            to={`/projects/${project.id}/edit`}
-                            variant="contained"
-                        >
-                            Modifier
-                        </Button>
-                    )}
-
-                    {project && canRestoreProject(user, project) && (
-                        <Button
-                            variant="contained"
-                            disabled={actionLoading}
-                            onClick={() => changeStatus(PROJECT_STATUS.IN_PROGRESS)}
-                        >
-                            Restaurer
-                        </Button>
-                    )}
-
-                    <Button component={Link} to="/projects" variant="outlined">
-                        Retour aux projets
-                    </Button>
-                </Box>
-            </Box>
+            <ProjectDetailActions
+                project={project}
+                user={user}
+                actionLoading={actionLoading}
+                onChangeStatus={changeStatus}
+            />
 
             {project?.isArchived && (
                 <Alert severity="warning" sx={{ mb: 2 }}>
@@ -195,27 +216,26 @@ function ProjectDetailPage() {
                         </Typography>
                     </Box>
 
-                    <Typography variant="h6" gutterBottom>
-                        Membres
-                    </Typography>
-
-                    {project.members && project.members.length > 0 ? (
-                        project.members.map((member) => (
-                            <Box
-                                key={member.id}
-                                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, pl: 2 }}
-                            >
-                                <PersonIcon fontSize="small" color="action" />
-                                <Typography>
-                                    {member.firstName} {member.lastName} ({member.email})
-                                </Typography>
-                            </Box>
-                        ))
-                    ) : (
-                        <Typography color="text.secondary" sx={{ pl: 2 }}>Aucun membre</Typography>
-                    )}
+                    <ProjectMembersSection
+                        project={project}
+                        user={user}
+                        actionLoading={actionLoading}
+                        onAddClick={openAddMemberDialog}
+                        onRemoveMember={handleRemoveMember}
+                    />
                 </Box>
             )}
+
+            <AddMembersDialog
+                open={openAddMemberModal}
+                onClose={() => setOpenAddMemberModal(false)}
+                availableUsers={availableUsers}
+                selectedUsers={selectedUsers}
+                onSelectedUsersChange={setSelectedUsers}
+                membersLoading={membersLoading}
+                actionLoading={actionLoading}
+                onSubmit={handleAddMembers}
+            />
         </Box>
     );
 }
