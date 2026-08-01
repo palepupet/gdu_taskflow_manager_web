@@ -17,6 +17,8 @@ import NotifyAlert from "../components/NotifyAlert.jsx"
 import ProjectDetailActions from "../components/project/ProjectDetailActions.jsx"
 import ProjectMembersSection from "../components/project/ProjectMembersSection.jsx"
 import AddMembersDialog from "../components/project/AddMembersDialog.jsx"
+import { getProjectTasks } from "../api/tasks.js"
+import ProjectTasksSection from "../components/project/ProjectTasksSection.jsx"
 
 function ProjectDetailPage() {
     const { id } = useParams()
@@ -32,6 +34,10 @@ function ProjectDetailPage() {
     const [users, setUsers] = useState([])
     const [selectedUsers, setSelectedUsers] = useState([])
     const [membersLoading, setMembersLoading] = useState(false)
+
+    const [tasks, setTasks] = useState([])
+    const [tasksLoading, setTasksLoading] = useState(true)
+    const [tasksError, setTasksError] = useState('')
 
     async function changeStatus(status) {
         setActionError('')
@@ -124,9 +130,25 @@ function ProjectDetailPage() {
         }
     }
 
+    async function loadTasks() {
+        setTasksLoading(true)
+        setTasksError('')
+
+        try {
+            const data = await getProjectTasks(id)
+            setTasks(data)
+        } catch (err) {
+            setTasksError(err.message || 'Erreur lors du chargement des tâches.')
+            setTasks([])
+        } finally {
+            setTasksLoading(false)
+        }
+    }
+
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         loadDetailProject()
+        loadTasks()
         // eslint-disable-next-line
     }, [])
 
@@ -202,6 +224,12 @@ function ProjectDetailPage() {
                             Fin : {project.endAt || '-'}
                         </Typography>
                     </Box>
+
+                    <ProjectTasksSection
+                        tasks={tasks}
+                        loading={tasksLoading}
+                        error={tasksError}
+                    />
 
                     <Typography variant="h6" gutterBottom>
                         Propriétaire
