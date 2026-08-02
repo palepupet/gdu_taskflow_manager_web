@@ -2,10 +2,13 @@ import Loading from "../Loading.jsx"
 import NotifyAlert from "../NotifyAlert.jsx"
 import PropTypes from "prop-types"
 import { TASK_STATUS } from '../../utils/tasks.js'
-import { Box, Typography } from "@mui/material"
+import { canManageTasks } from "../../utils/permissions.js"
 import EventIcon from '@mui/icons-material/Event'
 import PlayCircleOutlinedIcon from '@mui/icons-material/PlayCircleOutlined'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import CloseIcon from '@mui/icons-material/Close'
+import { Box, Button, IconButton, Typography } from "@mui/material"
+
 
 function getTaskStatusIcon(status) {
     if (status === TASK_STATUS.OPEN) {
@@ -27,14 +30,28 @@ function ProjectTasksSection({
     tasks,
     loading,
     error,
+    project,
+    user,
+    actionLoading,
+    onAddClick,
+    onRemoveTask,
 }) {
     if (loading) {
         return <Loading message="Chargement des tâches..." />
     }
 
+    const canManage = canManageTasks(user, project);
+
     return (
         <Box sx={{ mt: 1, mb: 2 }}>
-            <Typography variant="h6" gutterBottom>Tâches</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                <Typography variant="h6">Tâches</Typography>
+                {canManage && (
+                    <Button variant="outlined" size="small" onClick={onAddClick}>
+                        Ajouter
+                    </Button>
+                )}
+            </Box>
 
             <NotifyAlert message={error} />
 
@@ -61,6 +78,16 @@ function ProjectTasksSection({
                                 {task.assignedTo.firstName} {task.assignedTo.lastName}
                             </Typography>
                         )}
+                        {canManage && (
+                            <IconButton
+                                size="small"
+                                color="error"
+                                disabled={actionLoading}
+                                onClick={() => onRemoveTask(task.id)}
+                            >
+                                <CloseIcon fontSize="small" />
+                            </IconButton>
+                        )}
                     </Box>
                 ))
             )}
@@ -72,6 +99,11 @@ ProjectTasksSection.propTypes = {
     tasks: PropTypes.array.isRequired,
     loading: PropTypes.bool.isRequired,
     error: PropTypes.string,
+    project: PropTypes.object.isRequired,
+    user: PropTypes.object,
+    actionLoading: PropTypes.bool.isRequired,
+    onAddClick: PropTypes.func.isRequired,
+    onRemoveTask: PropTypes.func.isRequired,
 }
 
 export default ProjectTasksSection;
