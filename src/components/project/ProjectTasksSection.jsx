@@ -1,5 +1,6 @@
 import Loading from "../Loading.jsx"
 import NotifyAlert from "../NotifyAlert.jsx"
+import TaskFiltersBar from "./TaskFiltersBar.jsx"
 import PropTypes from "prop-types"
 import { TASK_STATUS } from '../../utils/tasks.js'
 import { canManageTasks } from "../../utils/permissions.js"
@@ -35,11 +36,21 @@ function ProjectTasksSection({
     actionLoading,
     onAddClick,
     onRemoveTask,
+    filterStates,
+    filterPriorities,
+    filterAssignee,
+    filterDueBefore,
+    sortField,
+    sortOrder,
+    assigneeOptions,
+    onStatesChange,
+    onPrioritiesChange,
+    onAssigneeChange,
+    onDueBeforeChange,
+    onSortFieldChange,
+    onSortOrderChange,
+    onReset,
 }) {
-    if (loading) {
-        return <Loading message="Chargement des tâches..." />
-    }
-
     const canManage = canManageTasks(user, project);
 
     return (
@@ -53,9 +64,28 @@ function ProjectTasksSection({
                 )}
             </Box>
 
+            <TaskFiltersBar
+                filterStates={filterStates}
+                filterPriorities={filterPriorities}
+                filterAssignee={filterAssignee}
+                filterDueBefore={filterDueBefore}
+                sortField={sortField}
+                sortOrder={sortOrder}
+                assigneeOptions={assigneeOptions}
+                onStatesChange={onStatesChange}
+                onPrioritiesChange={onPrioritiesChange}
+                onAssigneeChange={onAssigneeChange}
+                onDueBeforeChange={onDueBeforeChange}
+                onSortFieldChange={onSortFieldChange}
+                onSortOrderChange={onSortOrderChange}
+                onReset={onReset}
+            />
+
             <NotifyAlert message={error} />
 
-            {tasks.length === 0 ? (
+            {loading ? (
+                <Loading message="Chargement des tâches..." />
+            ): tasks.length === 0 ? (
                 <Typography color="text.secondary" sx={{ pl: 2 }}>Aucune tâche</Typography>
             ) : (
                 tasks.map(task => (
@@ -104,6 +134,20 @@ ProjectTasksSection.propTypes = {
     actionLoading: PropTypes.bool.isRequired,
     onAddClick: PropTypes.func.isRequired,
     onRemoveTask: PropTypes.func.isRequired,
+    filterStates: PropTypes.array.isRequired,
+    filterPriorities: PropTypes.array.isRequired,
+    filterAssignee: PropTypes.string.isRequired,
+    filterDueBefore: PropTypes.string.isRequired,
+    sortField: PropTypes.string.isRequired,
+    sortOrder: PropTypes.string.isRequired,
+    assigneeOptions: PropTypes.array.isRequired,
+    onStatesChange: PropTypes.func.isRequired,
+    onPrioritiesChange: PropTypes.func.isRequired,
+    onAssigneeChange: PropTypes.func.isRequired,
+    onDueBeforeChange: PropTypes.func.isRequired,
+    onSortFieldChange: PropTypes.func.isRequired,
+    onSortOrderChange: PropTypes.func.isRequired,
+    onReset: PropTypes.func.isRequired,
 }
 
 export default ProjectTasksSection;
