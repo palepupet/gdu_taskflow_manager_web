@@ -17,27 +17,43 @@ import NotifyAlert from "../components/NotifyAlert.jsx"
 import ProjectDetailActions from "../components/project/ProjectDetailActions.jsx"
 import ProjectMembersSection from "../components/project/ProjectMembersSection.jsx"
 import AddMembersDialog from "../components/project/AddMembersDialog.jsx"
-import { getProjectTasks } from "../api/tasks.js"
+import {
+    getProjectTasks,
+    createProjectTask,
+    deleteProjectTask,
+} from "../api/tasks.js"
 import ProjectTasksSection from "../components/project/ProjectTasksSection.jsx"
+import { TASK_PRIORITY } from "../utils/tasks.js"
+import CreateTaskDialog from "../components/project/CreateTaskDialog.jsx"
 
 function ProjectDetailPage() {
     const { id } = useParams()
     const { user } = useAuth()
 
+    // Project
     const [project, setProject] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [actionError, setActionError] = useState('')
     const [actionLoading, setActionLoading] = useState(false)
 
+    // Members add dialog
     const [openAddMemberModal, setOpenAddMemberModal] = useState(false)
     const [users, setUsers] = useState([])
     const [selectedUsers, setSelectedUsers] = useState([])
     const [membersLoading, setMembersLoading] = useState(false)
 
+    // Tasks listing
     const [tasks, setTasks] = useState([])
     const [tasksLoading, setTasksLoading] = useState(true)
     const [tasksError, setTasksError] = useState('')
+
+    // Tasks creation
+    const [openCreateTask, setOpenCreateTask] = useState(false)
+    const [taskTitle, setTaskTitle] = useState('')
+    const [taskDescription, setTaskDescription] = useState('')
+    const [taskDueAt, setTaskDueAt] = useState('')
+    const [taskPriority, setTaskPriority] = useState(TASK_PRIORITY.MEDIUM)
 
     async function changeStatus(status) {
         setActionError('')
@@ -145,6 +161,54 @@ function ProjectDetailPage() {
         }
     }
 
+    function openCreateTaskDialog() {
+        setActionError('')
+        setTaskTitle('')
+        setTaskDescription('')
+        setTaskDueAt('')
+        setTaskPriority(TASK_PRIORITY.MEDIUM)
+        setOpenCreateTask(true)
+    }
+
+    async function handleCreateTask() {
+        if (!taskTitle.trim()) {
+            setActionError('Le titre de la tâche est obligatoire.')
+            return
+        }
+
+        setActionLoading(true)
+        setActionError('')
+
+        try {
+            await createProjectTask(id, {
+                title: taskTitle.trim(),
+                description: taskDescription.trim() || null,
+                dueAt: taskDueAt || null,
+                priority: taskPriority,
+            })
+            setOpenCreateTask(false)
+            await loadTasks()
+        } catch (err) {
+            setActionError(err.message || 'Impossible de créer la tâche.')
+        } finally {
+            setActionLoading(false)
+        }
+    }
+
+    async function handleRemoveTask(taskId) {
+        setActionError('')
+        setActionLoading(true)
+
+        try {
+            await deleteProjectTask(taskId)
+            await loadTasks()
+        } catch (err) {
+            setActionError(err.message || 'Impossible de supprimer la tâche.')
+        } finally {
+            setActionLoading(false)
+        }
+    }
+
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         loadDetailProject()
@@ -226,9 +290,29 @@ function ProjectDetailPage() {
                     </Box>
 
                     <ProjectTasksSection
+                        project={project}
+                        user={user}
                         tasks={tasks}
                         loading={tasksLoading}
                         error={tasksError}
+                        actionLoading={actionLoading}
+                        onAddClick={openCreateTaskDialog}
+                        onRemoveTask={handleRemoveTask}
+                    />
+
+                    <CreateTaskDialog
+                        open={openCreateTask}
+                        onClose={() => setOpenCreateTask(false)}
+                        title={taskTitle}
+                        description={taskDescription}
+                        dueAt={taskDueAt}
+                        priority={taskPriority}
+                        onTitleChange={(e) => setTaskTitle(e.target.value)}
+                        onDescriptionChange={(e) => setTaskDescription(e.target.value)}
+                        onDueAtChange={(e) => setTaskDueAt(e.target.value)}
+                        onPriorityChange={(e) => setTaskPriority(e.target.value)}
+                        onSubmit={handleCreateTask}
+                        submitting={actionLoading}
                     />
 
                     <Typography variant="h6" gutterBottom>
