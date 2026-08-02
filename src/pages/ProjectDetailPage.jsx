@@ -18,9 +18,8 @@ import ProjectDetailActions from "../components/project/ProjectDetailActions.jsx
 import ProjectMembersSection from "../components/project/ProjectMembersSection.jsx"
 import AddMembersDialog from "../components/project/AddMembersDialog.jsx"
 import {
-    getProjectTasks,
     createProjectTask,
-    deleteProjectTask,
+    deleteProjectTask, searchProjectTasks,
 } from "../api/tasks.js"
 import ProjectTasksSection from "../components/project/ProjectTasksSection.jsx"
 import { TASK_PRIORITY } from "../utils/tasks.js"
@@ -54,6 +53,14 @@ function ProjectDetailPage() {
     const [taskDescription, setTaskDescription] = useState('')
     const [taskDueAt, setTaskDueAt] = useState('')
     const [taskPriority, setTaskPriority] = useState(TASK_PRIORITY.MEDIUM)
+
+    // Tasks filters
+    const [filterStates, setFilterStates] = useState([])
+    const [filterPriorities, setFilterPriorities] = useState([])
+    const [filterAssignee, setFilterAssignee] = useState('')
+    const [filterDueBefore, setFilterDueBefore] = useState('')
+    const [sortField, setSortField] = useState('dueAt')
+    const [sortOrder, setSortOrder] = useState('asc')
 
     async function changeStatus(status) {
         setActionError('')
@@ -151,7 +158,29 @@ function ProjectDetailPage() {
         setTasksError('')
 
         try {
-            const data = await getProjectTasks(id)
+            const filters = {}
+
+            if (filterStates.length > 0) {
+                filters.state = filterStates
+            }
+            if (filterPriorities.length > 0) {
+                filters.priority = filterPriorities
+            }
+            if (filterAssignee) {
+                filters.assignee = Number(filterAssignee)
+            }
+            if (filterDueBefore) {
+                filters.dueBefore = filterDueBefore
+            }
+
+            const data = await searchProjectTasks(id, {
+                filters,
+                sort: {
+                    field: sortField,
+                    order: sortOrder,
+                },
+            })
+
             setTasks(data)
         } catch (err) {
             setTasksError(err.message || 'Erreur lors du chargement des tâches.')
@@ -209,12 +238,34 @@ function ProjectDetailPage() {
         }
     }
 
+    function resetTaskFilters() {
+        setFilterStates([])
+        setFilterPriorities([])
+        setFilterAssignee('')
+        setFilterDueBefore('')
+        setSortField('dueAt')
+        setSortOrder('asc')
+    }
+
+    const assigneeOptions = project
+        ? [
+            project.owner,
+            ...(project.members || []),
+        ]
+        : []
+
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         loadDetailProject()
-        loadTasks()
         // eslint-disable-next-line
     }, [])
+
+    // useEffect filters
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        loadTasks()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filterStates, filterPriorities, filterAssignee, filterDueBefore, sortField, sortOrder])
 
     if (loading) {
         return <Loading />
@@ -298,6 +349,20 @@ function ProjectDetailPage() {
                         actionLoading={actionLoading}
                         onAddClick={openCreateTaskDialog}
                         onRemoveTask={handleRemoveTask}
+                        filterStates={filterStates}
+                        filterPriorities={filterPriorities}
+                        filterAssignee={filterAssignee}
+                        filterDueBefore={filterDueBefore}
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        assigneeOptions={assigneeOptions}
+                        onStatesChange={setFilterStates}
+                        onPrioritiesChange={setFilterPriorities}
+                        onAssigneeChange={setFilterAssignee}
+                        onDueBeforeChange={setFilterDueBefore}
+                        onSortFieldChange={setSortField}
+                        onSortOrderChange={setSortOrder}
+                        onReset={resetTaskFilters}
                     />
 
                     <CreateTaskDialog
