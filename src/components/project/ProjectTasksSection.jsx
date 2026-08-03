@@ -9,6 +9,7 @@ import PlayCircleOutlinedIcon from '@mui/icons-material/PlayCircleOutlined'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CloseIcon from '@mui/icons-material/Close'
 import { Box, Button, IconButton, Typography } from "@mui/material"
+import EditIcon from "@mui/icons-material/Edit"
 
 
 function getTaskStatusIcon(status) {
@@ -50,6 +51,7 @@ function ProjectTasksSection({
     onSortFieldChange,
     onSortOrderChange,
     onReset,
+    onEditTask,
 }) {
     const canManage = canManageTasks(user, project);
 
@@ -109,14 +111,25 @@ function ProjectTasksSection({
                             </Typography>
                         )}
                         {canManage && (
-                            <IconButton
-                                size="small"
-                                color="error"
-                                disabled={actionLoading}
-                                onClick={() => onRemoveTask(task.id)}
-                            >
-                                <CloseIcon fontSize="small" />
-                            </IconButton>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                <IconButton
+                                    size="small"
+                                    disabled={actionLoading}
+                                    onClick={() => onEditTask(task)}
+                                    title="Modifier la tâche"
+                                >
+                                    <EditIcon fontSize="small" />
+                                </IconButton>
+                                <IconButton
+                                    size="small"
+                                    color="error"
+                                    disabled={actionLoading}
+                                    onClick={() => onRemoveTask(task.id)}
+                                    title="Supprimer la tâche"
+                                >
+                                    <CloseIcon fontSize="small" />
+                                </IconButton>
+                            </Box>
                         )}
                     </Box>
                 ))
@@ -148,6 +161,7 @@ ProjectTasksSection.propTypes = {
     onSortFieldChange: PropTypes.func.isRequired,
     onSortOrderChange: PropTypes.func.isRequired,
     onReset: PropTypes.func.isRequired,
+    onEditTask: PropTypes.func.isRequired,
 }
 
 export default ProjectTasksSection;
