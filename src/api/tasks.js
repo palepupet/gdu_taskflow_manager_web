@@ -7,6 +7,13 @@ export async function createProjectTask(projectId, payload) {
     });
 }
 
+export async function updateProjectTask(taskId, payload) {
+    return apiClient(`/task/${taskId}`, {
+        method: 'PATCH',
+        body: payload,
+    });
+}
+
 export async function deleteProjectTask(taskId) {
     return apiClient(`/task/${taskId}`, {
         method: 'DELETE',

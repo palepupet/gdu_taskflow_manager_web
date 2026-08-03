@@ -1,20 +1,23 @@
 import {
-    Box, Button,
+    Box,
+    Button,
     Dialog,
     DialogActions,
-    DialogContent, DialogTitle,
+    DialogContent,
+    DialogTitle,
     FormControl,
-    InputLabel,
-    MenuItem,
-    Select,
+    InputLabel, MenuItem, Select,
     TextField
 } from "@mui/material"
-import { TASK_PRIORITY } from "../../utils/tasks.js"
+import {TASK_PRIORITY} from "../../utils/tasks.js"
 import PropTypes from "prop-types"
 
-function CreateTaskDialog({
+function TaskFormDialog({
     open,
     onClose,
+    dialogTitle,
+    submitLabel,
+    submitLoadingLabel,
     title,
     description,
     dueAt,
@@ -27,12 +30,8 @@ function CreateTaskDialog({
     submitting,
 }) {
     return (
-        <Dialog
-            open={open}
-            onClose={onClose}
-            fullWidth maxWidth="sm"
-        >
-            <DialogTitle>Ajouter une tâche</DialogTitle>
+        <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+            <DialogTitle>{dialogTitle}</DialogTitle>
             <DialogContent>
                 <Box
                     sx={{
@@ -84,26 +83,29 @@ function CreateTaskDialog({
             <DialogActions>
                 <Button onClick={onClose}>Fermer</Button>
                 <Button variant="contained" onClick={onSubmit} disabled={submitting}>
-                    {submitting ? 'Création...' : 'Créer'}
+                    {submitting ? submitLoadingLabel : submitLabel}
                 </Button>
             </DialogActions>
         </Dialog>
-    );
+    )
 }
 
-CreateTaskDialog.propTypes = {
-    open: PropTypes.bool.isRequired,
-    onClose: PropTypes.func.isRequired,
-    title: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired,
-    dueAt: PropTypes.string.isRequired,
-    priority: PropTypes.string.isRequired,
-    onTitleChange: PropTypes.func.isRequired,
-    onDescriptionChange: PropTypes.func.isRequired,
-    onDueAtChange: PropTypes.func.isRequired,
-    onPriorityChange: PropTypes.func.isRequired,
-    onSubmit: PropTypes.func.isRequired,
-    submitting: PropTypes.bool.isRequired,
-}
+TaskFormDialog.propTypes = {
+    open: PropTypes.bool,
+    onClose: PropTypes.func,
+    dialogTitle: PropTypes.string.isRequired,
+    submitLabel: PropTypes.string.isRequired,
+    submitLoadingLabel: PropTypes.string.isRequired,
+    title: PropTypes.string,
+    description: PropTypes.string,
+    dueAt: PropTypes.string,
+    priority: PropTypes.string,
+    onTitleChange: PropTypes.func,
+    onDescriptionChange: PropTypes.func,
+    onDueAtChange: PropTypes.func,
+    onPriorityChange: PropTypes.func,
+    onSubmit: PropTypes.func,
+    submitting: PropTypes.bool
+};
 
-export default CreateTaskDialog;
+export default TaskFormDialog;

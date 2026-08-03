@@ -19,11 +19,13 @@ import ProjectMembersSection from "../components/project/ProjectMembersSection.j
 import AddMembersDialog from "../components/project/AddMembersDialog.jsx"
 import {
     createProjectTask,
-    deleteProjectTask, searchProjectTasks,
+    deleteProjectTask,
+    searchProjectTasks,
+    updateProjectTask,
 } from "../api/tasks.js"
 import ProjectTasksSection from "../components/project/ProjectTasksSection.jsx"
+import TaskFormDialog from "../components/project/TaskFormDialog.jsx"
 import { TASK_PRIORITY } from "../utils/tasks.js"
-import CreateTaskDialog from "../components/project/CreateTaskDialog.jsx"
 
 function ProjectDetailPage() {
     const { id } = useParams()
@@ -53,6 +55,10 @@ function ProjectDetailPage() {
     const [taskDescription, setTaskDescription] = useState('')
     const [taskDueAt, setTaskDueAt] = useState('')
     const [taskPriority, setTaskPriority] = useState(TASK_PRIORITY.MEDIUM)
+
+    // Tasks edit
+    const [openEditTask, setOpenEditTask] = useState(false)
+    const [editingTaskId, setEditingTaskId] = useState(null)
 
     // Tasks filters
     const [filterStates, setFilterStates] = useState([])
@@ -224,6 +230,43 @@ function ProjectDetailPage() {
         }
     }
 
+    function openEditTaskDialog(task) {
+        setActionError('')
+        setEditingTaskId(task.id)
+        setTaskTitle(task.title || '')
+        setTaskDescription(task.description || '')
+        setTaskDueAt(task.dueAt ? String(task.dueAt).slice(0, 10) : '')
+        setTaskPriority(task.priority || TASK_PRIORITY.MEDIUM)
+        setOpenEditTask(true)
+    }
+
+    async function handleEditTask() {
+        if (!taskTitle.trim()) {
+            setActionError('Le titre de la tâche est obligatoire.')
+            return
+        }
+
+        setActionLoading(true)
+        setActionError('')
+
+        try {
+            await updateProjectTask(editingTaskId, {
+                title: taskTitle.trim(),
+                description: taskDescription.trim() || null,
+                dueAt: taskDueAt || null,
+                priority: taskPriority,
+            })
+
+            setOpenEditTask(false)
+            setEditingTaskId(null)
+            await loadTasks()
+        } catch (err) {
+            setActionError(err.message || 'Impossible de modifier la tâche')
+        } finally {
+            setActionLoading(false)
+        }
+    }
+
     async function handleRemoveTask(taskId) {
         setActionError('')
         setActionLoading(true)
@@ -363,11 +406,15 @@ function ProjectDetailPage() {
                         onSortFieldChange={setSortField}
                         onSortOrderChange={setSortOrder}
                         onReset={resetTaskFilters}
+                        onEditTask={openEditTaskDialog}
                     />
 
-                    <CreateTaskDialog
+                    <TaskFormDialog
                         open={openCreateTask}
                         onClose={() => setOpenCreateTask(false)}
+                        dialogTitle="Ajouter une tâche"
+                        submitLabel="Ajouter"
+                        submitLoadingLabel="Ajout en cours..."
                         title={taskTitle}
                         description={taskDescription}
                         dueAt={taskDueAt}
@@ -377,6 +424,24 @@ function ProjectDetailPage() {
                         onDueAtChange={(e) => setTaskDueAt(e.target.value)}
                         onPriorityChange={(e) => setTaskPriority(e.target.value)}
                         onSubmit={handleCreateTask}
+                        submitting={actionLoading}
+                    />
+
+                    <TaskFormDialog
+                        open={openEditTask}
+                        onClose={() => setOpenEditTask(false)}
+                        dialogTitle="Modifier une tâche"
+                        submitLabel="Modifier"
+                        submitLoadingLabel="Modification en cours..."
+                        title={taskTitle}
+                        description={taskDescription}
+                        dueAt={taskDueAt}
+                        priority={taskPriority}
+                        onTitleChange={(e) => setTaskTitle(e.target.value)}
+                        onDescriptionChange={(e) => setTaskDescription(e.target.value)}
+                        onDueAtChange={(e) => setTaskDueAt(e.target.value)}
+                        onPriorityChange={(e) => setTaskPriority(e.target.value)}
+                        onSubmit={handleEditTask}
                         submitting={actionLoading}
                     />
 
