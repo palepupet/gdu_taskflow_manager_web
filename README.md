@@ -13,6 +13,7 @@ TaskFlow Manager Web permet de :
 - consulter et gérer des projets (création, édition, changement de statut / archivage...),
 - gérer les membres d’un projet,
 - suivre les tâches d’un projet (liste, création, édition, suppression, filtres, état, assignation...),
+- consulter les tags d’un projet (liste),
 - consulter son profil
 
 Le frontend ne possède pas de base de données : toutes les données passent par l’API Symfony (`http://localhost:8000` en développement).
@@ -181,6 +182,10 @@ VITE_API_BASE_URL=http://localhost:8000
 
 Assigner un utilisateur qui n’est pas encore membre du projet l’ajoute automatiquement comme membre.
 
+### Tags
+
+- Liste des tags du projet sur la page détail
+
 ### Profil
 
 - Affichage en lecture seule (prénom, nom, email)
@@ -191,14 +196,14 @@ Assigner un utilisateur qui n’est pas encore membre du projet l’ajoute autom
 
 Définies dans `src/App.jsx` :
 
-| Chemin               | Accès       | Page                             |
-|----------------------|-------------|----------------------------------|
-| `/login`             | Public      | Connexion                        |
-| `/projects`          | Authentifié | Liste des projets                |
-| `/projects/create`   | Authentifié | Création de projet               |
-| `/projects/:id`      | Authentifié | Détail projet (membres + tâches) |
-| `/projects/:id/edit` | Authentifié | Édition de projet                |
-| `/profile`           | Authentifié | Profil                           |
+| Chemin               | Accès       | Page                                  |
+|----------------------|-------------|---------------------------------------|
+| `/login`             | Public      | Connexion                             |
+| `/projects`          | Authentifié | Liste des projets                     |
+| `/projects/create`   | Authentifié | Création de projet                    |
+| `/projects/:id`      | Authentifié | Détail projet (tâches, tags, membres) |
+| `/projects/:id/edit` | Authentifié | Édition de projet                     |
+| `/profile`           | Authentifié | Profil                                |
 
 Les routes authentifiées sont entourées par `ProtectedRoute` puis `DashboardLayout`.
 
