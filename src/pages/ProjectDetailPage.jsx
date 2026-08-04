@@ -26,6 +26,8 @@ import {
 import ProjectTasksSection from "../components/project/ProjectTasksSection.jsx"
 import TaskFormDialog from "../components/project/TaskFormDialog.jsx"
 import { TASK_PRIORITY } from "../utils/tasks.js"
+import { getProjectTags } from "../api/tags.js"
+import ProjectTagsSection from "../components/project/ProjectTagsSection.jsx"
 
 function ProjectDetailPage() {
     const { id } = useParams()
@@ -70,6 +72,11 @@ function ProjectDetailPage() {
 
     // Tasks assignees
     const [allUsers, setAllUsers] = useState([])
+
+    // Tags list
+    const [tags, setTags] = useState([])
+    const [tagsLoading, setTagsLoading] = useState(true)
+    const [tagsError, setTagsError] = useState('')
 
     async function changeStatus(status) {
         setActionError('')
@@ -340,10 +347,26 @@ function ProjectDetailPage() {
         ]
         : []
 
+    async function loadTags() {
+        setTagsLoading(true)
+        setTagsError('')
+
+        try {
+            const data = await getProjectTags(id)
+            setTags(data)
+        } catch (err) {
+            setTagsError(err.message || 'Erreur lors du chargement des tags.')
+            setTags([])
+        } finally {
+            setTagsLoading(false)
+        }
+    }
+
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         loadDetailProject()
         loadUsers()
+        loadTags()
         // eslint-disable-next-line
     }, [])
 
@@ -454,6 +477,12 @@ function ProjectDetailPage() {
                         onEditTask={openEditTaskDialog}
                         onChangeTaskState={handleChangeTaskState}
                         onChangeTaskAssignee={handleChangeTaskAssignee}
+                    />
+
+                    <ProjectTagsSection
+                        tags={tags}
+                        loading={tagsLoading}
+                        error={tagsError}
                     />
 
                     <TaskFormDialog
