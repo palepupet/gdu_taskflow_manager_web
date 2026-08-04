@@ -1,3 +1,5 @@
+import { TASK_STATUS } from "./tasks.js"
+
 const ROLE_MANAGER = 'ROLE_MANAGER';
 
 export function isManager(user) {
@@ -42,4 +44,38 @@ export function canManageMembers(user, project) {
 
 export function canManageTasks(user, project) {
     return canManageProject(user, project) && !project.isArchived;
+}
+
+export function isTaskAssignee(user, task) {
+    return Boolean(
+        user
+        && task?.assignee
+        && user.id === task.assignee.id
+    );
+}
+
+export function canChangeTaskState(user, project, task) {
+    if (!user || !project || !task || project.isArchived) {
+        return false;
+    }
+
+    if (isManager(user) || isOwner(user, project)) {
+        return true;
+    }
+
+    return isTaskAssignee(user, task);
+}
+
+export function getAllowedTaskStates(user, project, task) {
+    const allowedStates = [TASK_STATUS.OPEN, TASK_STATUS.IN_PROGRESS, TASK_STATUS.CLOSED];
+
+    if (isManager(user) || isOwner(user, project)) {
+        return allowedStates;
+    }
+
+    if (isTaskAssignee(user, task)) {
+        return allowedStates.filter(state => state !== TASK_STATUS.IN_PROGRESS);
+    }
+
+    return [];
 }
