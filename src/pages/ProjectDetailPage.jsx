@@ -26,8 +26,13 @@ import {
 import ProjectTasksSection from "../components/project/ProjectTasksSection.jsx"
 import TaskFormDialog from "../components/project/TaskFormDialog.jsx"
 import { TASK_PRIORITY } from "../utils/tasks.js"
-import { getProjectTags } from "../api/tags.js"
+import {
+    getProjectTags,
+    createProjectTag,
+    updateProjectTag,
+} from "../api/tags.js"
 import ProjectTagsSection from "../components/project/ProjectTagsSection.jsx"
+import TagFormDialog from "../components/project/TagFormDialog.jsx"
 
 function ProjectDetailPage() {
     const { id } = useParams()
@@ -77,6 +82,11 @@ function ProjectDetailPage() {
     const [tags, setTags] = useState([])
     const [tagsLoading, setTagsLoading] = useState(true)
     const [tagsError, setTagsError] = useState('')
+
+    // Tags edit
+    const [openTagForm, setOpenTagForm] = useState(false)
+    const [editingTagId, setEditingTagId] = useState(null)
+    const [tagLabel, setTagLabel] = useState('')
 
     async function changeStatus(status) {
         setActionError('')
@@ -362,6 +372,51 @@ function ProjectDetailPage() {
         }
     }
 
+    function openCreateTagDialog() {
+        setActionError('')
+        setEditingTagId(null)
+        setTagLabel('')
+        setOpenTagForm(true)
+    }
+
+    function openEditTagDialog(tag) {
+        setActionError('')
+        setEditingTagId(tag.id)
+        setTagLabel(tag.label || '')
+        setOpenTagForm(true)
+    }
+
+    async function handleSubmitTag() {
+        if (!tagLabel.trim()) {
+            setActionError('Le libellé du tag est obligatoire.')
+            return
+        }
+
+        setActionLoading(true)
+        setActionError('')
+
+        try {
+            if (editingTagId) {
+                await updateProjectTag(editingTagId, { label: tagLabel.trim() })
+            } else {
+                await createProjectTag(id, { label: tagLabel.trim() })
+            }
+
+            setOpenTagForm(false)
+            setEditingTagId(null)
+            await loadTags()
+        } catch (err) {
+            setActionError(
+                err.message ||
+                (editingTagId
+                    ? 'Impossible de modifier le tag.'
+                    : 'Impossible de créer le tag.')
+            )
+        } finally {
+            setActionLoading(false)
+        }
+    }
+
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         loadDetailProject()
@@ -483,6 +538,24 @@ function ProjectDetailPage() {
                         tags={tags}
                         loading={tagsLoading}
                         error={tagsError}
+                        project={project}
+                        user={user}
+                        onAddClick={openCreateTagDialog}
+                        onEditClick={openEditTagDialog}
+                    />
+
+                    <TagFormDialog
+                        open={openTagForm}
+                        onClose={() => setOpenTagForm(false)}
+                        dialogTitle={editingTagId ? 'Modifier le tag' : 'Ajouter un tag'}
+                        submitLabel={editingTagId ? 'Enregistrer' : 'Créer'}
+                        submitLoadingLabel={
+                            editingTagId ? 'Enregistrement...' : 'Création...'
+                        }
+                        label={tagLabel}
+                        onLabelChange={(e) => setTagLabel(e.target.value)}
+                        onSubmit={handleSubmitTag}
+                        submitting={actionLoading}
                     />
 
                     <TaskFormDialog
