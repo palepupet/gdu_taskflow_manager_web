@@ -12,7 +12,7 @@ TaskFlow Manager Web permet de :
 - se connecter / se déconnecter,
 - consulter et gérer des projets (création, édition, changement de statut / archivage...),
 - gérer les membres d’un projet,
-- suivre les tâches d’un projet (liste, création, suppression, filtres...),
+- suivre les tâches d’un projet (liste, création, édition, suppression, filtres, état, assignation...),
 - consulter son profil
 
 Le frontend ne possède pas de base de données : toutes les données passent par l’API Symfony (`http://localhost:8000` en développement).
@@ -159,14 +159,27 @@ VITE_API_BASE_URL=http://localhost:8000
 ### Tâches
 
 - Liste des tâches dans le détail projet
-- Icônes selon l’état (`ouvert` / `en cours` / `terminé`)
-- Création de tâche (titre, description, échéance, priorité)
-- Suppression de tâche
+- Affichage de la priorité
+- Affichage / changement rapide de l’état
+- Assignation d’une personne (un seul assigné par tâche)
+- Création / édition / suppression de tâche
 - Recherche via `POST /project/{id}/tasks/search` :
   - filtres : état(s), priorité(s), assigné, échéance avant (`dueBefore`)
   - tri : champ + ordre (asc / desc)
   - bouton réinitialiser
 - La barre de filtres reste visible pendant le rechargement de la liste
+
+#### Permissions tâches
+
+| Action                                | Qui                                                                    |
+|---------------------------------------|------------------------------------------------------------------------|
+| Créer / éditer / supprimer / assigner | Owner ou manager, projet non archivé                                   |
+| Changer l’état                        | Owner, manager, ou l’assigné de la tâche                               |
+| Restriction assigné                   | L’assigné (non owner/manager) ne peut pas passer l’état à `"en cours"` |
+
+#### Comportement API lié à l’assignation
+
+Assigner un utilisateur qui n’est pas encore membre du projet l’ajoute automatiquement comme membre.
 
 ### Profil
 

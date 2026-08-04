@@ -68,6 +68,9 @@ function ProjectDetailPage() {
     const [sortField, setSortField] = useState('dueAt')
     const [sortOrder, setSortOrder] = useState('asc')
 
+    // Tasks assignees
+    const [allUsers, setAllUsers] = useState([])
+
     async function changeStatus(status) {
         setActionError('')
         setActionLoading(true)
@@ -290,6 +293,46 @@ function ProjectDetailPage() {
         setSortOrder('asc')
     }
 
+    async function handleChangeTaskState(taskId, state) {
+        setActionError('')
+        setActionLoading(true)
+
+        try {
+            await updateProjectTask(taskId, { state })
+            await loadTasks()
+        } catch (err) {
+            setActionError(err.message || "Impossible de changer l'état de la tâche.")
+        } finally {
+            setActionLoading(false)
+        }
+    }
+
+    async function handleChangeTaskAssignee(taskId, assigneeValue) {
+        setActionError('')
+        setActionLoading(true)
+
+        try {
+            await updateProjectTask(taskId, {
+                assignee: assigneeValue ? Number(assigneeValue) : null,
+            })
+            await loadTasks()
+            await refreshProject()
+        } catch (err) {
+            setActionError(err.message || "Impossible d'assigner la tâche.")
+        } finally {
+            setActionLoading(false)
+        }
+    }
+
+    async function loadUsers() {
+        try {
+            const data = await getUsers()
+            setAllUsers(data)
+        } catch {
+            setAllUsers([])
+        }
+    }
+
     const assigneeOptions = project
         ? [
             project.owner,
@@ -300,6 +343,7 @@ function ProjectDetailPage() {
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         loadDetailProject()
+        loadUsers()
         // eslint-disable-next-line
     }, [])
 
@@ -399,6 +443,7 @@ function ProjectDetailPage() {
                         sortField={sortField}
                         sortOrder={sortOrder}
                         assigneeOptions={assigneeOptions}
+                        assignableUsers={allUsers}
                         onStatesChange={setFilterStates}
                         onPrioritiesChange={setFilterPriorities}
                         onAssigneeChange={setFilterAssignee}
@@ -407,6 +452,8 @@ function ProjectDetailPage() {
                         onSortOrderChange={setSortOrder}
                         onReset={resetTaskFilters}
                         onEditTask={openEditTaskDialog}
+                        onChangeTaskState={handleChangeTaskState}
+                        onChangeTaskAssignee={handleChangeTaskAssignee}
                     />
 
                     <TaskFormDialog
