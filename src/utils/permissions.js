@@ -79,3 +79,7 @@ export function getAllowedTaskStates(user, project, task) {
 
     return [];
 }
+
+export function canManageTags(user, project) {
+    return canManageProject(user, project) && !project.isArchived;
+}
