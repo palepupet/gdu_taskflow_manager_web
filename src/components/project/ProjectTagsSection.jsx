@@ -12,6 +12,8 @@ function ProjectTagsSection({
     user,
     onAddClick,
     onEditClick,
+    onRemoveTag,
+    actionLoading,
 }) {
     const canManage = canManageTags(user, project);
 
@@ -20,7 +22,7 @@ function ProjectTagsSection({
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
                 <Typography variant="h6">Tags</Typography>
                 {canManage && (
-                    <Button variant="outlined" size="small" onClick={onAddClick}>
+                    <Button variant="outlined" size="small" onClick={onAddClick} disabled={actionLoading}>
                         Ajouter
                     </Button>
                 )}
@@ -40,12 +42,24 @@ function ProjectTagsSection({
                             label={tag.label}
                             size="small"
                             variant="outlined"
+                            disabled={actionLoading}
                             onClick={
                                 canManage
                                     ? () => onEditClick(tag)
                                     : undefined
                             }
-                            sx={{ cursor: canManage ? 'pointer' : 'default', px: 2 }}
+                            onDelete={
+                            canManage
+                                ? () => onRemoveTag(tag.id)
+                                : undefined
+                            }
+                            sx={{ cursor: canManage ? 'pointer' : 'default', px: 2, pl: 1, pr: 0.5,
+                                '& .MuiChip-deleteIcon': {
+                                    ml: 1.5,
+                                }, '& .MuiChip-deleteIcon:hover': {
+                                    color: 'red',
+                                },
+                            }}
                         />
                     ))}
                 </Box>
@@ -62,6 +76,8 @@ ProjectTagsSection.propTypes = {
     user: PropTypes.object,
     onAddClick: PropTypes.func.isRequired,
     onEditClick: PropTypes.func.isRequired,
+    onRemoveTag: PropTypes.func.isRequired,
+    actionLoading: PropTypes.bool.isRequired,
 }
 
 export default ProjectTagsSection;

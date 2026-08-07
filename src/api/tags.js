@@ -17,3 +17,9 @@ export function updateProjectTag(tagId, payload) {
         body: payload,
     });
 }
+
+export function deleteProjectTag(tagId) {
+    return apiClient(`/tag/${tagId}`, {
+        method: 'DELETE',
+    });
+}
