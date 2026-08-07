@@ -1,10 +1,13 @@
 import { Drawer, List, ListItemButton, ListItemText, Toolbar } from '@mui/material'
 import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from "../../hooks/useAuth.js"
+import { isManager } from "../../utils/permissions.js"
 
 export const DRAWER_WIDTH = 240;
 
 function Sidebar() {
     const location = useLocation();
+    const {user} = useAuth();
 
     return (
         <Drawer
@@ -38,6 +41,16 @@ function Sidebar() {
                 >
                     <ListItemText primary="Profil" />
                 </ListItemButton>
+
+                {isManager(user) && (
+                    <ListItemButton
+                        component={Link}
+                        to="/users"
+                        selected={location.pathname.startsWith('/users')}
+                    >
+                        <ListItemText primary="Utilisateurs" />
+                    </ListItemButton>
+                )}
             </List>
         </Drawer>
     );
