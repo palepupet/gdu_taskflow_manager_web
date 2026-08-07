@@ -207,10 +207,6 @@ function ProjectTasksSection({
                             <Box
                                 key={task.id}
                                 sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 2,
-                                    flexWrap: 'wrap',
                                     px: 1,
                                     py: 1,
                                     borderBottom: '1px solid',
@@ -220,73 +216,103 @@ function ProjectTasksSection({
                                     },
                                 }}
                             >
-                                <Chip
-                                    size="small"
-                                    label={task.priority || TASK_PRIORITY.MEDIUM}
-                                    color={getPriorityChipColor(task.priority)}
-                                    variant="outlined"
+                                <Box
                                     sx={{
-                                        width: 90,
-                                        justifyContent: 'center',
-                                        cursor: 'default',
-                                    }}
-                                />
-
-                                <Chip
-                                    size="small"
-                                    label={task.state}
-                                    color={getStateChipColor(task.state)}
-                                    onClick={
-                                        canChangeState
-                                            ? (e) => openStateMenu(e, task)
-                                            : undefined
-                                    }
-                                    sx={{
-                                        cursor: canChangeState ? 'pointer' : 'default',
-                                        width: 90,
-                                        justifyContent: 'center',
-                                    }}
-                                />
-
-                                <Typography
-                                    title={task.title}
-                                    sx={{
-                                        fontWeight: 500,
-                                        width: 220,
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 2,
+                                        flexWrap: 'wrap',
                                     }}
                                 >
-                                    {task.title}
-                                </Typography>
-
-                                <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                    title={assigneeLabel}
-                                    onClick={canManage ? (e) => openAssigneeMenu(e, task) : undefined}
-                                    sx={{
-                                        width: 140,
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        cursor: canManage ? 'pointer' : 'default',
-                                        '&:hover': canManage ? { color: 'text.primary' } : undefined,
-                                    }}
-                                >
-                                    {assigneeLabel}
-                                </Typography>
-
-                                {canManage && (
-                                    <IconButton
+                                    <Chip
                                         size="small"
-                                        disabled={actionLoading}
-                                        onClick={(e) => openActionsMenu(e, task)}
-                                        sx={{ml: 'auto'}}
+                                        label={task.priority || TASK_PRIORITY.MEDIUM}
+                                        color={getPriorityChipColor(task.priority)}
+                                        variant="outlined"
+                                        sx={{
+                                            width: 90,
+                                            justifyContent: 'center',
+                                            cursor: 'default',
+                                        }}
+                                    />
+
+                                    <Chip
+                                        size="small"
+                                        label={task.state}
+                                        color={getStateChipColor(task.state)}
+                                        onClick={
+                                            canChangeState
+                                                ? (e) => openStateMenu(e, task)
+                                                : undefined
+                                        }
+                                        sx={{
+                                            cursor: canChangeState ? 'pointer' : 'default',
+                                            width: 90,
+                                            justifyContent: 'center',
+                                        }}
+                                    />
+
+                                    <Typography
+                                        title={task.title}
+                                        sx={{
+                                            fontWeight: 500,
+                                            width: 220,
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                        }}
                                     >
-                                        <MoreVertIcon fontSize="small"/>
-                                    </IconButton>
+                                        {task.title}
+                                    </Typography>
+
+                                    <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                        title={assigneeLabel}
+                                        onClick={canManage ? (e) => openAssigneeMenu(e, task) : undefined}
+                                        sx={{
+                                            width: 140,
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                            cursor: canManage ? 'pointer' : 'default',
+                                            '&:hover': canManage ? { color: 'text.primary' } : undefined,
+                                        }}
+                                    >
+                                        {assigneeLabel}
+                                    </Typography>
+
+                                    {canManage && (
+                                        <IconButton
+                                            size="small"
+                                            disabled={actionLoading}
+                                            onClick={(e) => openActionsMenu(e, task)}
+                                            sx={{ ml: 'auto' }}
+                                        >
+                                            <MoreVertIcon fontSize="small" />
+                                        </IconButton>
+                                    )}
+                                </Box>
+
+                                {(task.tags || []).length > 0 && (
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            flexWrap: 'wrap',
+                                            gap: 0.5,
+                                            mt: 0.75,
+                                            pl: 1,
+                                        }}
+                                    >
+                                        {(task.tags || []).map((tag) => (
+                                            <Chip
+                                                key={tag.id}
+                                                label={tag.label}
+                                                size="small"
+                                                variant="outlined"
+                                            />
+                                        ))}
+                                    </Box>
                                 )}
                             </Box>
                         )
