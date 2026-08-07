@@ -89,6 +89,9 @@ function ProjectDetailPage() {
     const [editingTagId, setEditingTagId] = useState(null)
     const [tagLabel, setTagLabel] = useState('')
 
+    // Tags link
+    const [taskTagIds, setTaskTagIds] = useState([])
+
     async function changeStatus(status) {
         setActionError('')
         setActionLoading(true)
@@ -224,6 +227,7 @@ function ProjectDetailPage() {
         setTaskDueAt('')
         setTaskPriority(TASK_PRIORITY.MEDIUM)
         setOpenCreateTask(true)
+        setTaskTagIds([])
     }
 
     async function handleCreateTask() {
@@ -236,12 +240,17 @@ function ProjectDetailPage() {
         setActionError('')
 
         try {
-            await createProjectTask(id, {
+            const created = await createProjectTask(id, {
                 title: taskTitle.trim(),
                 description: taskDescription.trim() || null,
                 dueAt: taskDueAt || null,
                 priority: taskPriority,
             })
+
+            if (taskTagIds.length > 0) {
+                await updateProjectTask(created.id, { tags: taskTagIds })
+            }
+
             setOpenCreateTask(false)
             await loadTasks()
         } catch (err) {
@@ -259,6 +268,7 @@ function ProjectDetailPage() {
         setTaskDueAt(task.dueAt ? String(task.dueAt).slice(0, 10) : '')
         setTaskPriority(task.priority || TASK_PRIORITY.MEDIUM)
         setOpenEditTask(true)
+        setTaskTagIds((task.tags || []).map(tag => tag.id))
     }
 
     async function handleEditTask() {
@@ -276,6 +286,7 @@ function ProjectDetailPage() {
                 description: taskDescription.trim() || null,
                 dueAt: taskDueAt || null,
                 priority: taskPriority,
+                tags: taskTagIds,
             })
 
             setOpenEditTask(false)
@@ -406,6 +417,7 @@ function ProjectDetailPage() {
             setOpenTagForm(false)
             setEditingTagId(null)
             await loadTags()
+            await loadTasks()
         } catch (err) {
             setActionError(
                 err.message ||
@@ -425,6 +437,7 @@ function ProjectDetailPage() {
         try {
             await deleteProjectTag(tagId)
             await loadTags()
+            await loadTasks()
         } catch (err) {
             setActionError(err.message || 'Impossible de supprimer le tag')
         } finally {
@@ -591,6 +604,9 @@ function ProjectDetailPage() {
                         onPriorityChange={(e) => setTaskPriority(e.target.value)}
                         onSubmit={handleCreateTask}
                         submitting={actionLoading}
+                        availableTags={tags}
+                        selectedTagIds={taskTagIds}
+                        onSelectedTagIdsChange={setTaskTagIds}
                     />
 
                     <TaskFormDialog
@@ -609,6 +625,9 @@ function ProjectDetailPage() {
                         onPriorityChange={(e) => setTaskPriority(e.target.value)}
                         onSubmit={handleEditTask}
                         submitting={actionLoading}
+                        availableTags={tags}
+                        selectedTagIds={taskTagIds}
+                        onSelectedTagIdsChange={setTaskTagIds}
                     />
 
                     <Typography variant="h6" gutterBottom>

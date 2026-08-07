@@ -1,6 +1,8 @@
 import {
+    Autocomplete,
     Box,
     Button,
+    Chip,
     Dialog,
     DialogActions,
     DialogContent,
@@ -28,6 +30,9 @@ function TaskFormDialog({
     onPriorityChange,
     onSubmit,
     submitting,
+    availableTags,
+    selectedTagIds,
+    onSelectedTagIdsChange,
 }) {
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -78,6 +83,22 @@ function TaskFormDialog({
                             <MenuItem value={TASK_PRIORITY.HIGH}>{TASK_PRIORITY.HIGH}</MenuItem>
                         </Select>
                     </FormControl>
+                    <Autocomplete
+                        multiple
+                        options={availableTags}
+                        value={availableTags.filter((tag) => selectedTagIds.includes(tag.id))}
+                        onChange={(event, newValue) => onSelectedTagIdsChange(newValue.map((tag) => tag.id))}
+                        getOptionLabel={(option) => option.label}
+                        filterSelectedOptions
+                        renderTags={(value, getTagProps) =>
+                            value.map((option, index) => (
+                                <Chip {...getTagProps({ index })} key={option.id} label={option.label} size="small" />
+                            ))
+                        }
+                        renderInput={(params) => (
+                            <TextField {...params} label="Tags" placeholder="Choisir des tags" />
+                        )}
+                    />
                 </Box>
             </DialogContent>
             <DialogActions>
@@ -105,7 +126,10 @@ TaskFormDialog.propTypes = {
     onDueAtChange: PropTypes.func,
     onPriorityChange: PropTypes.func,
     onSubmit: PropTypes.func,
-    submitting: PropTypes.bool
+    submitting: PropTypes.bool,
+    availableTags: PropTypes.array,
+    selectedTagIds: PropTypes.array,
+    onSelectedTagIdsChange: PropTypes.func,
 };
 
 export default TaskFormDialog;
