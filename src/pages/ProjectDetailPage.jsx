@@ -30,6 +30,7 @@ import {
     getProjectTags,
     createProjectTag,
     updateProjectTag,
+    deleteProjectTag,
 } from "../api/tags.js"
 import ProjectTagsSection from "../components/project/ProjectTagsSection.jsx"
 import TagFormDialog from "../components/project/TagFormDialog.jsx"
@@ -417,6 +418,20 @@ function ProjectDetailPage() {
         }
     }
 
+    async function handleRemoveTag(tagId) {
+        setActionError('')
+        setActionLoading(true)
+
+        try {
+            await deleteProjectTag(tagId)
+            await loadTags()
+        } catch (err) {
+            setActionError(err.message || 'Impossible de supprimer le tag')
+        } finally {
+            setActionLoading(false)
+        }
+    }
+
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         loadDetailProject()
@@ -542,6 +557,8 @@ function ProjectDetailPage() {
                         user={user}
                         onAddClick={openCreateTagDialog}
                         onEditClick={openEditTagDialog}
+                        onRemoveTag={handleRemoveTag}
+                        actionLoading={actionLoading}
                     />
 
                     <TagFormDialog
