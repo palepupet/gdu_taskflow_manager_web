@@ -1,16 +1,31 @@
 import { useEffect, useState } from "react"
-import { getUsers } from "../api/users.js"
+import { createUser, getUsers } from "../api/users.js"
 import Loading from "../components/Loading.jsx"
-import { Box, Chip, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material"
+import { Box, Button, Chip, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material"
 import NotifyAlert from "../components/NotifyAlert.jsx"
+import UserFormDialog from "../components/project/UserFormDialog.jsx"
 
 function UsersPage() {
+    // User list
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    async function loadUsers() {
-        setLoading(true);
+    // User create
+    const [openCreate, setOpenCreate] = useState(false);
+    const [actionLoading, setActionLoading] = useState(false);
+    const [actionError, setActionError] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [asManager, setAsManager] = useState(false);
+
+    async function loadUsers(showLoading = true) {
+        if (showLoading) {
+            setLoading(true);
+        }
+
         setError('');
 
         try {
@@ -18,7 +33,46 @@ function UsersPage() {
         } catch (err) {
             setError(err.message || 'Impossible de charger les utilisateurs');
         } finally {
-            setLoading(false);
+            if (showLoading) {
+                setLoading(false);
+            }
+        }
+    }
+
+    function openCreateDialog() {
+        setActionError('');
+        setFirstName('');
+        setLastName('');
+        setEmail('');
+        setPassword('');
+        setAsManager(false);
+        setOpenCreate(true);
+    }
+
+    async function handleCreateUser() {
+        if (!firstName.trim() || !lastName.trim() || !email.trim() || !password) {
+            setActionError('Tous les champs sont obligatoires.');
+            return;
+        }
+
+        setActionLoading(true);
+        setActionError('');
+
+        try {
+            await createUser({
+                firstName: firstName.trim(),
+                lastName: lastName.trim(),
+                email: email.trim(),
+                password,
+                roles: asManager ? ['ROLE_MANAGER'] : ['ROLE_USER'],
+            });
+
+            setOpenCreate(false);
+            await loadUsers(false);
+        } catch (err) {
+            setActionError(err.message || 'Impossible de créer l\'utilisateur.');
+        } finally {
+            setActionLoading(false);
         }
     }
 
@@ -32,9 +86,13 @@ function UsersPage() {
 
     return (
         <Box>
-            <Typography variant="h4" gutterBottom>Utilisateurs</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                <Typography variant="h4">Utilisateurs</Typography>
+                <Button variant="contained" size="small" onClick={openCreateDialog}>Créer</Button>
+            </Box>
 
             <NotifyAlert message={error} />
+            <NotifyAlert message={actionError} />
 
             {users.length === 0 ? (
                 <Typography color="text.secondary">Aucun utilisateur</Typography>
@@ -77,6 +135,24 @@ function UsersPage() {
                     </TableBody>
                 </Table>
             )}
+
+            <UserFormDialog
+                open={openCreate}
+                onClose={() => setOpenCreate(false)}
+                firstName={firstName}
+                lastName={lastName}
+                email={email}
+                password={password}
+                asManager={asManager}
+                onFirstNameChange={(e) => setFirstName(e.target.value)}
+                onLastNameChange={(e) => setLastName(e.target.value)}
+                onEmailChange={(e) => setEmail(e.target.value)}
+                onPasswordChange={(e) => setPassword(e.target.value)}
+                onAsManagerChange={(e) => setAsManager(e.target.checked)}
+                onSubmit={handleCreateUser}
+                submitting={actionLoading}
+            />
+
         </Box>
     );
 }
