@@ -486,7 +486,14 @@ function ProjectDetailPage() {
             )}
 
             <NotifyAlert message={error} />
-            <NotifyAlert message={actionError} />
+            {
+                !openCreateTask &&
+                !openEditTask &&
+                !openTagForm &&
+                !openAddMemberModal && (
+                    <NotifyAlert message={actionError} />
+                )
+            }
 
             {!project && (
                 <Typography>Projet introuvable.</Typography>
@@ -576,7 +583,10 @@ function ProjectDetailPage() {
 
                     <TagFormDialog
                         open={openTagForm}
-                        onClose={() => setOpenTagForm(false)}
+                        onClose={() => {
+                            setOpenTagForm(false);
+                            setActionError('');
+                        }}
                         dialogTitle={editingTagId ? 'Modifier le tag' : 'Ajouter un tag'}
                         submitLabel={editingTagId ? 'Enregistrer' : 'Créer'}
                         submitLoadingLabel={
@@ -586,11 +596,15 @@ function ProjectDetailPage() {
                         onLabelChange={(e) => setTagLabel(e.target.value)}
                         onSubmit={handleSubmitTag}
                         submitting={actionLoading}
+                        error={actionError}
                     />
 
                     <TaskFormDialog
                         open={openCreateTask}
-                        onClose={() => setOpenCreateTask(false)}
+                        onClose={() => {
+                            setOpenCreateTask(false);
+                            setActionError('');
+                        }}
                         dialogTitle="Ajouter une tâche"
                         submitLabel="Ajouter"
                         submitLoadingLabel="Ajout en cours..."
@@ -607,11 +621,15 @@ function ProjectDetailPage() {
                         availableTags={tags}
                         selectedTagIds={taskTagIds}
                         onSelectedTagIdsChange={setTaskTagIds}
+                        error={actionError}
                     />
 
                     <TaskFormDialog
                         open={openEditTask}
-                        onClose={() => setOpenEditTask(false)}
+                        onClose={() => {
+                            setOpenEditTask(false);
+                            setActionError('');
+                        }}
                         dialogTitle="Modifier une tâche"
                         submitLabel="Modifier"
                         submitLoadingLabel="Modification en cours..."
@@ -628,6 +646,7 @@ function ProjectDetailPage() {
                         availableTags={tags}
                         selectedTagIds={taskTagIds}
                         onSelectedTagIdsChange={setTaskTagIds}
+                        error={actionError}
                     />
 
                     <Typography variant="h6" gutterBottom>
@@ -655,13 +674,17 @@ function ProjectDetailPage() {
 
             <AddMembersDialog
                 open={openAddMemberModal}
-                onClose={() => setOpenAddMemberModal(false)}
+                onClose={() => {
+                    setOpenAddMemberModal(false);
+                    setActionError('');
+                }}
                 availableUsers={availableUsers}
                 selectedUsers={selectedUsers}
                 onSelectedUsersChange={setSelectedUsers}
                 membersLoading={membersLoading}
                 actionLoading={actionLoading}
                 onSubmit={handleAddMembers}
+                error={actionError}
             />
         </Box>
     );

@@ -7,6 +7,7 @@ import {
     DialogTitle,
     TextField,
 } from "@mui/material"
+import NotifyAlert from "../NotifyAlert.jsx"
 
 function TagFormDialog({
     open,
@@ -18,6 +19,7 @@ function TagFormDialog({
     onLabelChange,
     onSubmit,
     submitting,
+    error,
 }) {
     return (
         <Dialog
@@ -28,6 +30,8 @@ function TagFormDialog({
         >
             <DialogTitle>{dialogTitle}</DialogTitle>
             <DialogContent>
+                <NotifyAlert message={error} />
+
                 <TextField
                     label="Libellé"
                     value={label}
@@ -62,6 +66,7 @@ TagFormDialog.propTypes = {
     onLabelChange: PropTypes.func.isRequired,
     onSubmit: PropTypes.func.isRequired,
     submitting: PropTypes.bool.isRequired,
+    error: PropTypes.string,
 }
 
 export default TagFormDialog;
