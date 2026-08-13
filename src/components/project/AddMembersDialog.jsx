@@ -8,6 +8,7 @@ import {
     DialogTitle,
     TextField,
 } from "@mui/material"
+import NotifyAlert from "../NotifyAlert.jsx"
 
 function AddMembersDialog({
     open,
@@ -18,6 +19,7 @@ function AddMembersDialog({
     membersLoading,
     actionLoading,
     onSubmit,
+    error,
 }) {
     return (
         <Dialog
@@ -28,6 +30,8 @@ function AddMembersDialog({
         >
             <DialogTitle>Ajouter des membres</DialogTitle>
             <DialogContent>
+                <NotifyAlert message={error} />
+
                 <Autocomplete
                     multiple
                     sx={{ mt: 1 }}
@@ -69,6 +73,7 @@ AddMembersDialog.propTypes = {
     membersLoading: PropTypes.bool.isRequired,
     actionLoading: PropTypes.bool.isRequired,
     onSubmit: PropTypes.func.isRequired,
+    error: PropTypes.string,
 }
 
 export default AddMembersDialog;

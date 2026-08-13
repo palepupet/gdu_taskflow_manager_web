@@ -13,6 +13,7 @@ import {
 } from "@mui/material"
 import {TASK_PRIORITY} from "../../utils/tasks.js"
 import PropTypes from "prop-types"
+import NotifyAlert from "../NotifyAlert.jsx"
 
 function TaskFormDialog({
     open,
@@ -33,11 +34,14 @@ function TaskFormDialog({
     availableTags,
     selectedTagIds,
     onSelectedTagIdsChange,
+    error,
 }) {
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
             <DialogTitle>{dialogTitle}</DialogTitle>
             <DialogContent>
+                <NotifyAlert message={error} />
+
                 <Box
                     sx={{
                         display: 'flex',
@@ -130,6 +134,7 @@ TaskFormDialog.propTypes = {
     availableTags: PropTypes.array,
     selectedTagIds: PropTypes.array,
     onSelectedTagIdsChange: PropTypes.func,
+    error: PropTypes.string,
 };
 
 export default TaskFormDialog;
