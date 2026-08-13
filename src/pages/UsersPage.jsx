@@ -1,9 +1,21 @@
 import { useEffect, useState } from "react"
-import { createUser, getUsers } from "../api/users.js"
+import { createUser, deleteUser, getUsers, updateUser } from "../api/users.js"
 import Loading from "../components/Loading.jsx"
-import { Box, Button, Chip, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material"
+import {
+    Box,
+    Button,
+    Chip,
+    IconButton,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableRow,
+    Typography
+} from "@mui/material"
 import NotifyAlert from "../components/NotifyAlert.jsx"
 import UserFormDialog from "../components/project/UserFormDialog.jsx"
+import DeleteIcon from "@mui/icons-material/Delete"
 
 function UsersPage() {
     // User list
@@ -12,6 +24,7 @@ function UsersPage() {
     const [error, setError] = useState('');
 
     // User create
+    const [editingUserId, setEditingUserId] = useState(null);
     const [openCreate, setOpenCreate] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [actionError, setActionError] = useState('');
@@ -45,13 +58,19 @@ function UsersPage() {
         setLastName('');
         setEmail('');
         setPassword('');
+        setEditingUserId(null);
         setAsManager(false);
         setOpenCreate(true);
     }
 
     async function handleCreateUser() {
-        if (!firstName.trim() || !lastName.trim() || !email.trim() || !password) {
-            setActionError('Tous les champs sont obligatoires.');
+        if (!firstName.trim() || !lastName.trim() || !email.trim()) {
+            setActionError('Le prénom, le nom et l\'email sont obligatoires.');
+            return;
+        }
+
+        if (!editingUserId && !password) {
+            setActionError('Le mot de passe est obligatoire.');
             return;
         }
 
@@ -59,18 +78,72 @@ function UsersPage() {
         setActionError('');
 
         try {
-            await createUser({
-                firstName: firstName.trim(),
-                lastName: lastName.trim(),
-                email: email.trim(),
-                password,
-                roles: asManager ? ['ROLE_MANAGER'] : ['ROLE_USER'],
-            });
+            if (editingUserId) {
+                await updateUser(editingUserId, {
+                    firstName: firstName.trim(),
+                    lastName: lastName.trim(),
+                    email: email.trim(),
+                    roles: asManager ? ['ROLE_MANAGER'] : ['ROLE_USER'],
+                });
+            } else {
+                await createUser({
+                    firstName: firstName.trim(),
+                    lastName: lastName.trim(),
+                    email: email.trim(),
+                    password,
+                    roles: asManager ? ['ROLE_MANAGER'] : ['ROLE_USER'],
+                });
+            }
 
             setOpenCreate(false);
+            setEditingUserId(null);
             await loadUsers(false);
         } catch (err) {
-            setActionError(err.message || 'Impossible de créer l\'utilisateur.');
+            setActionError(
+                err.message ||
+                (editingUserId
+                    ? 'Impossible de modifier l\'utilisateur.'
+                    : 'Impossible de créer l\'utilisateur.')
+                );
+        } finally {
+            setActionLoading(false);
+        }
+    }
+
+    function openEditDialog(user) {
+        setActionError('');
+        setEditingUserId(user.id);
+        setFirstName(user.firstName);
+        setLastName(user.lastName);
+        setEmail(user.email);
+        setPassword('');
+        setAsManager((user.roles || []).includes('ROLE_MANAGER'));
+        setOpenCreate(true);
+    }
+
+    async function handleToggleActive(user) {
+        setActionError('');
+        setActionLoading(true);
+
+        try {
+            await updateUser(user.id, { isActive: !user.isActive });
+            await loadUsers(false);
+        } catch (err) {
+            setActionError(err.message || 'Impossible de changer le statut.');
+        } finally {
+            setActionLoading(false);
+        }
+    }
+
+    async function handleDeleteUser(userId) {
+        setActionError('');
+        setActionLoading(true);
+
+        try {
+            await deleteUser(userId);
+            await loadUsers(false);
+        } catch (err) {
+            setActionError(err.message || 'Impossible de supprimer l\'utilisateur.');
         } finally {
             setActionLoading(false);
         }
@@ -92,7 +165,7 @@ function UsersPage() {
             </Box>
 
             <NotifyAlert message={error} />
-            <NotifyAlert message={actionError} />
+            {!openCreate && <NotifyAlert message={actionError} />}
 
             {users.length === 0 ? (
                 <Typography color="text.secondary">Aucun utilisateur</Typography>
@@ -104,6 +177,7 @@ function UsersPage() {
                             <TableCell>Email</TableCell>
                             <TableCell>Rôles</TableCell>
                             <TableCell>Statut</TableCell>
+                            <TableCell>Action</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -130,6 +204,30 @@ function UsersPage() {
                                         size="small"
                                     />
                                 </TableCell>
+                                <TableCell>
+                                    <Button
+                                        size="small"
+                                        disabled={actionLoading}
+                                        onClick={() => openEditDialog(user)}
+                                    >
+                                        Modifier
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        disabled={actionLoading}
+                                        onClick={() => handleToggleActive(user)}
+                                    >
+                                        {user.isActive ? 'Désactiver' : 'Activer'}
+                                    </Button>
+                                    <IconButton
+                                        size="small"
+                                        color="error"
+                                        disabled={actionLoading}
+                                        onClick={() => handleDeleteUser(user.id)}
+                                    >
+                                        <DeleteIcon fontSize="small" />
+                                    </IconButton>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -138,7 +236,16 @@ function UsersPage() {
 
             <UserFormDialog
                 open={openCreate}
-                onClose={() => setOpenCreate(false)}
+                onClose={() => {
+                    setOpenCreate(false);
+                    setEditingUserId(null);
+                    setActionError('');
+                    }
+                }
+                dialogTitle={editingUserId ? 'Modifier un utilisateur' : 'Créer un utilisateur'}
+                submitLabel={editingUserId ? 'Enregistrer' : 'Créer'}
+                submitLoadingLabel={editingUserId ? 'Enregistrement...' : 'Création...'}
+                showPassword={!editingUserId}
                 firstName={firstName}
                 lastName={lastName}
                 email={email}
@@ -151,6 +258,7 @@ function UsersPage() {
                 onAsManagerChange={(e) => setAsManager(e.target.checked)}
                 onSubmit={handleCreateUser}
                 submitting={actionLoading}
+                error={actionError}
             />
 
         </Box>

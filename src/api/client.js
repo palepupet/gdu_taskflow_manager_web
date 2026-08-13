@@ -36,7 +36,14 @@ export async function apiClient(endpoint, options = {}) {
     }
 
     if (!response.ok) {
-        throw new Error(`Erreur HTTP ${response.status}`)
+        let message = `Erreur HTTP ${response.status}`;
+
+        const data = await response.json();
+        if (data?.message) {
+            message = data.message;
+        }
+
+        throw new Error(message);
     }
 
     if (response.status === 204) {

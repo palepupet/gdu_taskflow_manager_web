@@ -10,15 +10,20 @@ import {
     FormControlLabel,
     TextField,
 } from "@mui/material"
+import NotifyAlert from "../NotifyAlert.jsx"
 
 function UserFormDialog({
     open,
     onClose,
+    dialogTitle,
+    submitLabel,
+    submitLoadingLabel,
     firstName,
     lastName,
     email,
     password,
     asManager,
+    showPassword,
     onFirstNameChange,
     onLastNameChange,
     onEmailChange,
@@ -26,6 +31,7 @@ function UserFormDialog({
     onAsManagerChange,
     onSubmit,
     submitting,
+    error,
 }) {
     return (
         <Dialog
@@ -34,8 +40,11 @@ function UserFormDialog({
             fullWidth
             maxWidth="sm"
         >
-            <DialogTitle>Créer un utilisateur</DialogTitle>
+            <DialogTitle>{dialogTitle}</DialogTitle>
             <DialogContent>
+
+                <NotifyAlert message={error} />
+
                 <Box
                     sx={{
                         display: 'flex',
@@ -66,14 +75,16 @@ function UserFormDialog({
                         required
                         fullWidth
                     />
-                    <TextField
-                        label="Mot de passe"
-                        type="password"
-                        value={password}
-                        onChange={onPasswordChange}
-                        required
-                        fullWidth
-                    />
+                    {showPassword && (
+                        <TextField
+                            label="Mot de passe"
+                            type="password"
+                            value={password}
+                            onChange={onPasswordChange}
+                            required
+                            fullWidth
+                        />
+                    )}
                     <FormControlLabel
                         control={
                             <Checkbox
@@ -92,7 +103,7 @@ function UserFormDialog({
                     onClick={onSubmit}
                     disabled={submitting}
                 >
-                    {submitting ? 'Création...' : 'Créer'}
+                    {submitting ? submitLoadingLabel : submitLabel}
                 </Button>
             </DialogActions>
         </Dialog>
@@ -102,11 +113,15 @@ function UserFormDialog({
 UserFormDialog.propTypes = {
     open: PropTypes.bool.isRequired,
     onClose: PropTypes.func.isRequired,
+    dialogTitle: PropTypes.string.isRequired,
+    submitLabel: PropTypes.string.isRequired,
+    submitLoadingLabel: PropTypes.string.isRequired,
     firstName: PropTypes.string.isRequired,
     lastName: PropTypes.string.isRequired,
     email: PropTypes.string.isRequired,
     password: PropTypes.string.isRequired,
     asManager: PropTypes.bool.isRequired,
+    showPassword: PropTypes.bool.isRequired,
     onFirstNameChange: PropTypes.func.isRequired,
     onLastNameChange: PropTypes.func.isRequired,
     onEmailChange: PropTypes.func.isRequired,
@@ -114,6 +129,7 @@ UserFormDialog.propTypes = {
     onAsManagerChange: PropTypes.func.isRequired,
     onSubmit: PropTypes.func.isRequired,
     submitting: PropTypes.bool.isRequired,
+    error: PropTypes.string,
 }
 
 export default UserFormDialog;
