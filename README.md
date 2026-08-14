@@ -12,9 +12,10 @@ TaskFlow Manager Web permet de :
 - se connecter / se déconnecter,
 - consulter et gérer des projets (création, édition, changement de statut / archivage...),
 - gérer les membres d’un projet,
-- suivre les tâches d’un projet (liste, création, édition, suppression, filtres, état, assignation...),
-- consulter les tags d’un projet (liste),
-- consulter son profil
+- suivre les tâches d’un projet (liste, création, édition, suppression, filtres, tri, état, assignation, tags...),
+- gérer les tags d’un projet (création, renommage, suppression) et les associer aux tâches,
+- modifier son profil (prénom, nom),
+- administrer les utilisateurs (réservé aux managers : liste, création, édition, activation / désactivation, suppression)
 
 Le frontend ne possède pas de base de données : toutes les données passent par l’API Symfony (`http://localhost:8000` en développement).
 
@@ -79,10 +80,10 @@ cd /chemin/vers/gdu_taskflow_manager_web
 
 npm install
 
-cp .env.example .env
-
 npm run dev
 ```
+
+Créer un fichier `.env` à la racine si besoin (voir [Variables d’environnement](#variables-denvironnement)).
 
 Vite affiche l’URL locale :
 
@@ -116,16 +117,15 @@ VITE_API_BASE_URL=http://localhost:8000
 
 ## Scripts npm
 
-| Commande        | Description                      |
-|-----------------|----------------------------------|
-| `npm run dev`   | Serveur de développement Vite    |
-| `npm run build` | Build de production dans `dist/` |
-| `npm run lint`  | Lancer ESLint sur le projet      |
+| Commande          | Description                      |
+|-------------------|----------------------------------|
+| `npm run dev`     | Serveur de développement Vite    |
+| `npm run build`   | Build de production dans `dist/` |
+| `npm run lint`    | Lancer ESLint sur le projet      |
 
 ---
 
 ## Fonctionnalités
-
 
 ### Authentification
 
@@ -133,13 +133,14 @@ VITE_API_BASE_URL=http://localhost:8000
 - Stockage du JWT dans `sessionStorage`
 - Chargement du profil via `GET /me`
 - Déconnexion
-- Redirection automatique vers `/login` si 401 (session expirée)
+- Redirection automatique vers `/login` si 401 (session expirée, message « Session expirée »)
 - Routes protégées (`ProtectedRoute`)
 
 ### Layout
 
 - Shell dashboard : Navbar + Sidebar + zone de contenu
-- Navigation vers projets et profil
+- Navigation vers projets, profil et utilisateurs (ce dernier visible uniquement pour les managers)
+- Navbar : nom de l’utilisateur connecté + bouton de déconnexion
 - Thème MUI clair
 
 ### Projets
@@ -160,15 +161,17 @@ VITE_API_BASE_URL=http://localhost:8000
 ### Tâches
 
 - Liste des tâches dans le détail projet
-- Affichage de la priorité
+- Affichage de la priorité et des tags
 - Affichage / changement rapide de l’état
 - Assignation d’une personne (un seul assigné par tâche)
 - Création / édition / suppression de tâche
+- Association de tags à la création et à l’édition
 - Recherche via `POST /project/{id}/tasks/search` :
   - filtres : état(s), priorité(s), assigné, échéance avant (`dueBefore`)
   - tri : champ + ordre (asc / desc)
   - bouton réinitialiser
 - La barre de filtres reste visible pendant le rechargement de la liste
+- Messages d’erreur affichés dans les dialogs lors des actions (création, édition, tags, membres…)
 
 #### Permissions tâches
 
@@ -185,10 +188,25 @@ Assigner un utilisateur qui n’est pas encore membre du projet l’ajoute autom
 ### Tags
 
 - Liste des tags du projet sur la page détail
+- Création et renommage
+- Suppression
+- Permissions : owner ou manager, projet non archivé
+- Tags affichés sur chaque tâche, sélection multi-tags dans le formulaire de tâche
 
 ### Profil
 
-- Affichage en lecture seule (prénom, nom, email)
+- Affichage et modification du prénom et du nom
+- Email affiché en lecture seule
+- Mise à jour du contexte auth après enregistrement
+
+### Administration utilisateurs (manager)
+
+- Page `/users` accessible uniquement aux comptes avec le rôle `ROLE_MANAGER` (via `ManagerRoute`)
+- Liste des utilisateurs (nom, email, rôles, statut actif / inactif)
+- Création d’un utilisateur : prénom, nom, email, mot de passe, rôle manager ou user
+- Édition : prénom, nom, email, rôle
+- Activation / désactivation
+- Suppression
 
 ---
 
@@ -196,16 +214,18 @@ Assigner un utilisateur qui n’est pas encore membre du projet l’ajoute autom
 
 Définies dans `src/App.jsx` :
 
-| Chemin               | Accès       | Page                                  |
-|----------------------|-------------|---------------------------------------|
-| `/login`             | Public      | Connexion                             |
-| `/projects`          | Authentifié | Liste des projets                     |
-| `/projects/create`   | Authentifié | Création de projet                    |
-| `/projects/:id`      | Authentifié | Détail projet (tâches, tags, membres) |
-| `/projects/:id/edit` | Authentifié | Édition de projet                     |
-| `/profile`           | Authentifié | Profil                                |
+| Chemin               | Accès              | Page                                  |
+|----------------------|--------------------|---------------------------------------|
+| `/login`             | Public             | Connexion                             |
+| `/projects`          | Authentifié        | Liste des projets                     |
+| `/projects/create`   | Authentifié        | Création de projet                    |
+| `/projects/:id`      | Authentifié        | Détail projet (tâches, tags, membres) |
+| `/projects/:id/edit` | Authentifié        | Édition de projet                     |
+| `/profile`           | Authentifié        | Profil                                |
+| `/users`             | Manager            | Administration des utilisateurs       |
 
 Les routes authentifiées sont entourées par `ProtectedRoute` puis `DashboardLayout`.
+La route `/users` est en plus protégée par `ManagerRoute` (redirection vers `/projects` si l’utilisateur n’est pas manager).
 
 ---
 
