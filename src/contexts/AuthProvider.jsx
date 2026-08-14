@@ -55,12 +55,17 @@ export function AuthProvider({ children }) {
         setUser(null)
     }
 
+    function updateUserProfile(updatedUser) {
+        setUser(updatedUser);
+    }
+
     const value = {
         user,
         loading,
         isAuthenticated: user !== null,
         login,
         logout,
+        updateUserProfile,
     }
 
     return (
