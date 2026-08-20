@@ -39,7 +39,11 @@ export function canRestoreProject(user, project) {
 }
 
 export function canManageMembers(user, project) {
-    return canManageProject(user, project) && !project.isArchived;
+    if (!user || !project || project.isArchived) {
+        return false;
+    }
+
+    return isManager(user);
 }
 
 export function canManageTasks(user, project) {
