@@ -23,54 +23,160 @@ Le frontend ne possède pas de base de données : toutes les données passent pa
 
 ## Stack technique
 
-| Domaine     | Choix                                      |
-|-------------|--------------------------------------------|
-| Langage     | JavaScript                                 |
-| Runtime UI  | React 19                                   |
-| UI          | Material UI (MUI) 9 + Emotion + icônes MUI |
-| Auth        | JWT stocké dans `sessionStorage`           |
-| Formulaires | React natif, validation manuelle           |
-| Lint        | ESLint 10                                  |
+| Domaine          | Choix                                      |
+|------------------|--------------------------------------------|
+| Langage          | JavaScript                                 |
+| Runtime UI       | React 19                                   |
+| Build            | Vite 8                                     |
+| UI               | Material UI (MUI) 9 + Emotion + icônes MUI |
+| Auth             | JWT stocké dans `sessionStorage`           |
+| Formulaires      | React natif, validation manuelle           |
+| Lint             | ESLint 10                                  |
+| Conteneurisation | Docker + Docker Compose                    |
 
 ---
 
 ## Prérequis
 
-### Frontend
+### Avec Docker (recommandé)
 
-- Node.js et npm,
+- **Docker** Engine
+- **Docker Compose** (plugin `docker compose`)
+- L'API TaskFlow démarrée (via Docker sur [http://localhost:8000](http://localhost:8000))
 
-### Backend (obligatoire pour utiliser l’application web)
+### Sans Docker (installation locale)
 
-- Le dépôt API TaskFlow (Symfony) démarré en local (`symfony serve`),
-- Base de données de l’API configurée + fixtures chargées (comptes de démo),
-- CORS autorisant l’origine du frontend Vite (`http://localhost:5173`) et le header `Authorization`
+- Node.js et npm
+- L'API TaskFlow démarrée en parallèle
 
-Sans API + CORS, la page de login s’affiche mais les appels échouent (erreurs réseau / CORS).
+### Backend (obligatoire)
+
+Sans API accessible + CORS correct, la page de login s’affiche mais les appels échouent.
+
+- Dépôt `gdu_taskflow_manager_api` démarré
+- Base de données + fixtures (comptes de démo)
+- CORS autorisant l'origine du frontend (`http://localhost:3000` en Docker, `http://localhost:5173` en Vite) et le header `Authorization`
 
 ### Documentation API
 
-Une fois l’API lancée (`symfony serve`) :
+Une fois l’API lancée :
 
 - Swagger UI : [http://localhost:8000/api/doc](http://localhost:8000/api/doc)
 - OpenAPI JSON : [http://localhost:8000/api/doc.json](http://localhost:8000/api/doc.json)
 
 ---
 
-## Lancer le projet en local
+## Variables d'environnement
 
-Il faut deux onglets de terminal : un pour l’API, un pour le frontend.
+Vite n'expose que les variables préfixées par `VITE_`.  
+`VITE_API_BASE_URL` n'est **pas un secret** : pas besoin de `.env.docker`.
 
-### API Symfony
+| Fichier      | Rôle                                                                |
+|--------------|---------------------------------------------------------------------|
+| `.env`       | URL de l'API pour le mode local (`npm run dev`)                     |
+| `.env.local` | Surcharge locale (gitignoré via `*.local`)                          |
+| Compose arg  | `VITE_API_BASE_URL` passé au **build** Docker (voir `compose.yaml`) |
 
-Dans le dépôt de l’API:
+Exemple `.env` :
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+| Variable            | Rôle                                                         |
+|---------------------|--------------------------------------------------------------|
+| `VITE_API_BASE_URL` | Préfixe de toutes les requêtes `fetch` (`src/api/client.js`) |
+
+> Avec Vite, cette variable est injectée au build. Après un changement d'URL en Docker, il faut rebuild (`docker compose up --build`).
+
+---
+
+## Installation avec Docker
+
+Le frontend est servi par nginx (image multi-stage : build Node => fichiers statiques).
+
+### 1) Cloner le dépôt
+
+```bash
+git clone https://github.com/palepupet/gdu_taskflow_manager_web.git
+cd gdu_taskflow_manager_web
+```
+
+### 2) Démarrer l'API (autre dépôt)
+
+L'API doit être accessible sur `http://localhost:8000` avant d'utiliser le front.
+
+Exemple (dépôt API) :
 
 ```bash
 cd /chemin/vers/gdu_taskflow_manager_api
+docker compose --env-file .env.docker up --build -d
+# migrations + JWT + fixtures si besoin (voir README de l'API)
+```
 
-composer install
+### 3) Build et démarrage du frontend
 
-symfony serve
+```bash
+cd /chemin/vers/gdu_taskflow_manager_web
+docker compose up --build
+```
+
+En arrière-plan :
+
+```bash
+docker compose up --build -d
+```
+
+Service démarré :
+
+| Service | Rôle                         | Accès                                          |
+|---------|------------------------------|------------------------------------------------|
+| `web`   | React (build) + nginx        | [http://localhost:3000](http://localhost:3000) |
+
+L'URL de l'API est passée au build via Compose :
+
+```yaml
+args:
+  VITE_API_BASE_URL: http://localhost:8000
+```
+
+Le navigateur appelle ensuite l'API sur `localhost:8000` (pas le réseau interne Docker).
+
+### 4) Vérifier
+
+- Frontend : [http://localhost:3000](http://localhost:3000) (ex. `/login`)
+- Doc API : [http://localhost:8000/api/doc](http://localhost:8000/api/doc)
+
+### Commandes utiles (Docker)
+
+```bash
+# Conteneurs
+docker compose ps
+
+# Arrêt
+docker compose down
+```
+
+### Fichiers Docker
+
+| Fichier         | Rôle                                              |
+|-----------------|---------------------------------------------------|
+| `Dockerfile`    | Multi-stage : `node` (build) puis `nginx` (serve) |
+| `nginx.conf`    | SPA : toutes les routes => `index.html`           |
+| `compose.yaml`  | Service `web`, port `3000:80`                     |
+| `.dockerignore` | Exclut `node_modules`, `dist`, etc.               |
+
+---
+
+## Installation locale (sans Docker)
+
+Il faut deux terminaux : un pour l’API, un pour le frontend.
+
+### API Symfony
+
+```bash
+cd /chemin/vers/gdu_taskflow_manager_api
+# Docker ou symfony serve / php -S — voir README de l'API
 ```
 
 ### Frontend
@@ -80,38 +186,22 @@ cd /chemin/vers/gdu_taskflow_manager_web
 
 npm install
 
+# .env avec VITE_API_BASE_URL=http://localhost:8000 si besoin
 npm run dev
 ```
 
-Créer un fichier `.env` à la racine si besoin (voir [Variables d’environnement](#variables-denvironnement)).
-
-Vite affiche l’URL locale :
-
-- Frontend : [http://localhost:5173](http://localhost:5173)
-
-### Résumé des URLs
-
-| Service         | URL typique                     |
-|-----------------|---------------------------------|
-| Frontend (Vite) | `http://localhost:5173`         |
-| API (Symfony)   | `http://localhost:8000`         |
-| Doc API         | `http://localhost:8000/api/doc` |
+Vite affiche l'URL locale : [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## Variables d’environnement
+## Résumé des URLs
 
-Vite n’expose que les variables préfixées par `VITE_`.
-
-Créer un fichier `.env` à la racine du frontend:
-
-```env
-VITE_API_BASE_URL=http://localhost:8000
-```
-
-| Variable            | Rôle                                                         |
-|---------------------|--------------------------------------------------------------|
-| `VITE_API_BASE_URL` | Préfixe de toutes les requêtes `fetch` (`src/api/client.js`) |
+| Service              | URL typique                     |
+|----------------------|---------------------------------|
+| Frontend (Docker)    | `http://localhost:3000`         |
+| Frontend (Vite dev)  | `http://localhost:5173`         |
+| API                  | `http://localhost:8000`         |
+| Doc API              | `http://localhost:8000/api/doc` |
 
 ---
 
