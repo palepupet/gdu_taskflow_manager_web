@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react"
 import Loading from "../Loading.jsx"
+import { describe, expect, it } from "vitest"
 
 describe('Loading', () => {
     it('should display default loading text', () => {

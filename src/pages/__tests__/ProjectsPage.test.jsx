@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react"
 import { MemoryRouter } from "react-router-dom"
 import ProjectsPage from "../ProjectsPage.jsx"
 import { getProjects } from "../../api/projects.js"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 vi.mock('../../api/projects.js', () => ({
     getProjects: vi.fn(),

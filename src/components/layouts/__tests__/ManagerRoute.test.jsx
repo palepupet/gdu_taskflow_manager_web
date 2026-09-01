@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react"
 import { MemoryRouter, Route, Routes } from "react-router-dom"
 import ManagerRoute from "../ManagerRoute.jsx"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const useAuthMock = vi.fn()
 

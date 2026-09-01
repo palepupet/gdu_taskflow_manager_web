@@ -1,4 +1,5 @@
 import { PROJECT_STATUS, getStatusColor } from "../projects.js"
+import { describe, expect, it } from "vitest"
 
 describe('projects utils', () => {
     describe('PROJECT_STATUS', () => {

@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react"
 import NotifyAlert from "../NotifyAlert.jsx"
+import { describe, expect, it } from "vitest"
 
 describe('NotifyAlert', () => {
     it('should display an error message by default', () => {

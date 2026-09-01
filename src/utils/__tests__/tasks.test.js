@@ -1,4 +1,5 @@
 import { TASK_STATUS, TASK_PRIORITY } from "../tasks.js"
+import { describe, expect, it } from "vitest"
 
 describe('tasks utils', () => {
     describe('TASK_STATUS', () => {
