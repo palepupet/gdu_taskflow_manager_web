@@ -9,6 +9,7 @@ import {
     getAllowedTaskStates,
 } from "../permissions.js"
 import { TASK_STATUS } from "../tasks.js"
+import { describe, expect, it } from "vitest"
 
 const manager = {
     id: 1,
